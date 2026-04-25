@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   CalendarDays,
@@ -228,31 +228,36 @@ function getScaleLabel(value: number, labels: string[]) {
 }
 
 function usePersistentState<T>(key: string, initialValue: T) {
-  const [state, setState] = useState<T>(initialValue);
-  const [loaded, setLoaded] = useState(false);
+  const [state, setState] = useState<T>(() => {
+    if (typeof window === "undefined") {
+      return initialValue;
+    }
 
-  useEffect(() => {
     try {
       const rawValue = window.localStorage.getItem(key);
       if (rawValue !== null) {
-        setState(JSON.parse(rawValue) as T);
+        return JSON.parse(rawValue) as T;
       }
     } catch {
       // Ignore storage issues and keep the default state.
-    } finally {
-      setLoaded(true);
     }
-  }, [key]);
+
+    return initialValue;
+  });
+  const isFirstPersist = useRef(true);
 
   useEffect(() => {
-    if (!loaded) return;
+    if (isFirstPersist.current) {
+      isFirstPersist.current = false;
+      return;
+    }
 
     try {
       window.localStorage.setItem(key, JSON.stringify(state));
     } catch {
       // Ignore storage issues so the dashboard still works in private mode.
     }
-  }, [key, loaded, state]);
+  }, [key, state]);
 
   return [state, setState] as const;
 }
@@ -392,12 +397,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!timerRunning) {
-      setSecondsLeft(sessionLength * 60);
-    }
-  }, [sessionLength, timerRunning]);
-
-  useEffect(() => {
     if (!timerRunning) return;
 
     const interval = window.setInterval(() => {
@@ -416,18 +415,31 @@ export default function Home() {
   }, [timerRunning]);
 
   useEffect(() => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setWeather({
-        status: "error",
-        message: "Location-based weather is not available on this device.",
-      });
-      return;
+    let cancelled = false;
+    const geolocation = typeof navigator !== "undefined" ? navigator.geolocation : undefined;
+
+    if (!geolocation) {
+      window.setTimeout(() => {
+        if (!cancelled) {
+          setWeather({
+            status: "error",
+            message: "Location-based weather is not available on this device.",
+          });
+        }
+      }, 0);
+
+      return () => {
+        cancelled = true;
+      };
     }
 
-    let cancelled = false;
-    setWeather({ status: "loading" });
+    window.setTimeout(() => {
+      if (!cancelled) {
+        setWeather({ status: "loading" });
+      }
+    }, 0);
 
-    navigator.geolocation.getCurrentPosition(
+    geolocation.getCurrentPosition(
       async ({ coords }) => {
         try {
           const query = new URLSearchParams({
@@ -1093,6 +1105,7 @@ export default function Home() {
                       onClick={() => {
                         setSessionLength(preset);
                         setTimerRunning(false);
+                        setSecondsLeft(preset * 60);
                       }}
                       className={cn(
                         "rounded-2xl border px-4 py-3 text-sm font-medium transition",
@@ -1196,11 +1209,11 @@ export default function Home() {
                         </span>
                       </div>
                     </div>
-                  ) : (
+                  ) : weather.status === "error" ? (
                     <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4 text-sm leading-6 text-amber-50">
                       {weather.message}
                     </div>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
