@@ -1,0 +1,31 @@
+{
+  "name": "personal-daily-dashboard",
+  "version": "1.0.0",
+  "description": "A polished personal daily dashboard for planning, focus, habits, and notes.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pixelbuyte/mrr.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pixelbuyte/mrr/issues"
+  },
+  "homepage": "https://github.com/pixelbuyte/mrr#readme",
+  "dependencies": {
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.1",
+    "vite": "^8.0.10"
+  }
+}
