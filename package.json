@@ -1,0 +1,64 @@
+{
+  "name": "rulesync",
+  "version": "0.1.0",
+  "description": "One file. Every AI tool's rules. Always in sync.",
+  "keywords": [
+    "ai",
+    "agents",
+    "claude",
+    "cursor",
+    "copilot",
+    "gemini",
+    "windsurf",
+    "cline",
+    "aider",
+    "agents-md",
+    "cli",
+    "github-action"
+  ],
+  "license": "MIT",
+  "author": "rulesync contributors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pixelbuyte/mrr.git"
+  },
+  "homepage": "https://github.com/pixelbuyte/mrr#readme",
+  "bugs": {
+    "url": "https://github.com/pixelbuyte/mrr/issues"
+  },
+  "bin": {
+    "rulesync": "./dist/src/index.js"
+  },
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "files": [
+    "dist",
+    "action/action.yml",
+    "AGENTS.md",
+    "rulesync.config.example.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts action/index.ts --format cjs --dts --clean",
+    "dev": "tsx src/index.ts",
+    "test": "node --test",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/exec": "^1.1.1",
+    "@actions/github": "^6.0.0",
+    "@types/node": "^20.14.0",
+    "tsup": "^8.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
