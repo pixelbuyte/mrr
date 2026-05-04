@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Walking Route Planner Comparator</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <h1>Interactive Walking Route Planner</h1>
+        <p>
+          Compare AllTrails, Google Maps, Mapbox, and Geoapify routes with
+          distance filters, safety ratings, and mile accumulation tracking.
+        </p>
+      </header>
+
+      <section class="panel controls-panel">
+        <h2>Route Filters</h2>
+        <div class="controls-grid">
+          <fieldset class="providers-fieldset">
+            <legend>Providers</legend>
+            <label><input type="checkbox" name="provider" value="AllTrails" checked /> AllTrails</label>
+            <label><input type="checkbox" name="provider" value="Google Maps" checked /> Google Maps</label>
+            <label><input type="checkbox" name="provider" value="Mapbox" checked /> Mapbox</label>
+            <label><input type="checkbox" name="provider" value="Geoapify" checked /> Geoapify</label>
+          </fieldset>
+
+          <div class="control">
+            <label for="min-distance">
+              Minimum Distance:
+              <strong><span id="min-distance-value">0.5</span> mi</strong>
+            </label>
+            <input id="min-distance" type="range" min="0.5" max="12" step="0.5" value="0.5" />
+          </div>
+
+          <div class="control">
+            <label for="max-distance">
+              Maximum Distance:
+              <strong><span id="max-distance-value">8.0</span> mi</strong>
+            </label>
+            <input id="max-distance" type="range" min="1" max="15" step="0.5" value="8" />
+          </div>
+
+          <div class="control">
+            <label for="safety-threshold">
+              Minimum Safety:
+              <strong><span id="safety-threshold-value">3.0</span> / 5</strong>
+            </label>
+            <input id="safety-threshold" type="range" min="1" max="5" step="0.1" value="3" />
+          </div>
+
+          <div class="control">
+            <label for="terrain">Terrain</label>
+            <select id="terrain">
+              <option value="all">All terrain</option>
+              <option value="Urban">Urban</option>
+              <option value="Mixed">Mixed</option>
+              <option value="Trail">Trail</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="sort-by">Sort By</label>
+            <select id="sort-by">
+              <option value="safety">Safety (high to low)</option>
+              <option value="distance">Distance (short to long)</option>
+              <option value="time">Estimated Time (short to long)</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel stats-panel">
+        <h2>Provider Comparison Snapshot</h2>
+        <div id="provider-stats" class="provider-stats"></div>
+      </section>
+
+      <section class="panel routes-panel">
+        <div class="panel-title-row">
+          <h2>Filtered Routes</h2>
+          <p id="route-count-label" class="muted"></p>
+        </div>
+        <div id="route-results" class="route-results"></div>
+      </section>
+
+      <section class="panel tracker-panel">
+        <div class="panel-title-row">
+          <h2>Mile Accumulation Tracker</h2>
+          <button id="reset-tracker" class="button button-secondary">Reset Tracker</button>
+        </div>
+        <div class="tracker-grid">
+          <div class="tracker-summary">
+            <label for="mile-goal">Weekly goal (miles)</label>
+            <input id="mile-goal" type="number" min="1" step="0.5" value="20" />
+            <p>Total planned miles: <strong><span id="planned-miles">0.0</span></strong></p>
+            <p>Total completed miles: <strong><span id="completed-miles">0.0</span></strong></p>
+            <p>Goal progress: <strong><span id="goal-progress-label">0%</span></strong></p>
+            <div class="progress-track" aria-hidden="true">
+              <div id="goal-progress-bar" class="progress-bar"></div>
+            </div>
+          </div>
+          <div>
+            <h3>Planned Walks</h3>
+            <ul id="planner-list" class="planner-list"></ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <template id="route-card-template">
+      <article class="route-card">
+        <header>
+          <h3 class="route-name"></h3>
+          <p class="route-provider"></p>
+        </header>
+        <dl class="route-metrics">
+          <div><dt>Distance</dt><dd class="metric-distance"></dd></div>
+          <div><dt>Duration</dt><dd class="metric-duration"></dd></div>
+          <div><dt>Safety</dt><dd class="metric-safety"></dd></div>
+          <div><dt>Terrain</dt><dd class="metric-terrain"></dd></div>
+        </dl>
+        <p class="route-notes"></p>
+        <button class="button add-route-button">Add to Planner</button>
+      </article>
+    </template>
+
+    <template id="planner-item-template">
+      <li class="planner-item">
+        <div>
+          <strong class="planner-route-name"></strong>
+          <p class="planner-route-meta"></p>
+        </div>
+        <div class="planner-actions">
+          <button class="button button-success complete-route">Log Walked</button>
+          <button class="button button-danger remove-route">Remove</button>
+        </div>
+      </li>
+    </template>
+
+    <script src="script.js"></script>
+  </body>
+</html>
