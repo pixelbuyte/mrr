@@ -1,544 +1,682 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
+<meta charset="utf-8"/>
 <title>Aroma Fridge</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  html,body{height:100%;background:#080e1a;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;cursor:crosshair}
-  canvas{display:block}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#060c18;overflow:hidden;font-family:'SF Pro Display','Segoe UI',system-ui,sans-serif;cursor:crosshair;user-select:none}
+canvas{display:block}
 
-  #hud{
-    position:fixed;top:0;left:0;right:0;padding:16px 24px;
-    display:flex;justify-content:space-between;align-items:flex-start;
-    color:#fff;pointer-events:none;z-index:5;
-    text-shadow:0 1px 4px rgba(0,0,0,.7);
-    opacity:0;transition:opacity .6s ease;
-  }
-  #hud.show{opacity:1}
+/* ── HUD ── */
+#hud{
+  position:fixed;top:0;left:0;right:0;padding:14px 20px;
+  display:flex;justify-content:space-between;align-items:center;
+  color:#fff;pointer-events:none;z-index:5;
+  opacity:0;transition:opacity .5s .2s;
+}
+#hud.show{opacity:1}
 
-  .hud-pill{
-    background:rgba(8,14,26,.72);border:1px solid rgba(255,255,255,.12);
-    padding:10px 18px;border-radius:14px;backdrop-filter:blur(10px);
-    font-size:15px;font-weight:500;letter-spacing:.3px;
-    display:flex;align-items:center;gap:10px;
-  }
-  .swatch{
-    width:20px;height:20px;border-radius:50%;
-    box-shadow:0 0 14px 3px var(--c,#fff);background:var(--c,#fff);
-    transition:background .3s,box-shadow .3s;
-  }
-  #combo{font-size:13px;opacity:.7;margin-left:4px}
+.pill{
+  background:rgba(6,12,24,.7);border:1px solid rgba(255,255,255,.1);
+  padding:9px 18px;border-radius:12px;backdrop-filter:blur(12px);
+  font-size:14px;font-weight:600;letter-spacing:.4px;
+  display:flex;align-items:center;gap:9px;
+  transition:border-color .3s,transform .15s;
+}
+.pill.pop{animation:pillPop .25s ease}
+@keyframes pillPop{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
 
-  #overlay{
-    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-    flex-direction:column;gap:20px;z-index:10;color:#fff;text-align:center;
-    background:radial-gradient(ellipse at 50% 60%,rgba(30,60,120,.25),rgba(8,14,26,.92) 70%);
-  }
-  #overlay h1{font-size:42px;font-weight:700;letter-spacing:1px;line-height:1.1}
-  #overlay .sub{font-size:17px;opacity:.7;max-width:440px;line-height:1.5}
-  #overlay .stats{font-size:22px;margin-top:4px}
-  #playBtn{
-    pointer-events:all;cursor:pointer;border:none;border-radius:14px;
-    padding:16px 40px;font-size:18px;font-weight:700;color:#080e1a;
-    background:linear-gradient(135deg,#7CE38B,#38B6FF);
-    box-shadow:0 6px 28px rgba(56,182,255,.4);
-    transition:transform .15s,box-shadow .15s;
-  }
-  #playBtn:hover{transform:scale(1.04);box-shadow:0 8px 34px rgba(56,182,255,.55)}
-  .hidden{display:none!important}
+.dot{
+  width:16px;height:16px;border-radius:50%;
+  box-shadow:0 0 12px 3px var(--c,#fff);background:var(--c,#fff);
+  transition:all .35s;
+}
+#combo-txt{font-size:12px;opacity:.65;margin-left:2px}
+#multiplier{
+  background:linear-gradient(135deg,#ff6b6b,#ffd93d);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  font-weight:800;font-size:16px;display:none;
+}
 
-  #flash{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:4;transition:opacity .15s ease}
+/* ── Overlay ── */
+#overlay{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:18px;z-index:10;color:#fff;text-align:center;
+  background:radial-gradient(ellipse at 50% 55%,rgba(20,50,100,.2),rgba(6,12,24,.95) 70%);
+  transition:opacity .4s;
+}
+#overlay.fade{opacity:0;pointer-events:none}
+#overlay h1{font-size:48px;font-weight:800;letter-spacing:1.5px;line-height:1}
+#overlay h1 span{
+  background:linear-gradient(135deg,#7CE38B,#38B6FF,#a78bfa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+#overlay .sub{font-size:16px;opacity:.6;max-width:400px;line-height:1.6}
+#overlay .final-score{font-size:56px;font-weight:800;
+  background:linear-gradient(135deg,#ffd93d,#ff6b6b,#a78bfa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+#overlay .stat-row{display:flex;gap:28px;font-size:14px;opacity:.55}
+.play-btn{
+  cursor:pointer;border:none;border-radius:14px;
+  padding:16px 44px;font-size:17px;font-weight:700;color:#060c18;
+  background:linear-gradient(135deg,#7CE38B,#38B6FF);
+  box-shadow:0 4px 24px rgba(56,182,255,.35);
+  transition:transform .12s,box-shadow .12s;pointer-events:all;
+}
+.play-btn:hover{transform:scale(1.04);box-shadow:0 6px 30px rgba(56,182,255,.5)}
 
-  .pop-text{
-    position:fixed;pointer-events:none;z-index:6;font-size:22px;font-weight:700;
-    color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.5);
-    animation:popUp .7s ease-out forwards;
-  }
-  @keyframes popUp{
-    0%{opacity:1;transform:translateY(0) scale(1)}
-    100%{opacity:0;transform:translateY(-60px) scale(1.3)}
-  }
+/* ── Effects ── */
+#flash{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:4;transition:opacity .12s}
 
-  #cursor-dot{
-    position:fixed;width:32px;height:32px;border-radius:50%;
-    border:2.5px solid rgba(255,255,255,.8);
-    background:radial-gradient(circle,rgba(255,255,255,.3),transparent 70%);
-    transform:translate(-50%,-50%);z-index:6;pointer-events:none;
-    transition:left .3s cubic-bezier(.4,0,.2,1),top .3s cubic-bezier(.4,0,.2,1),transform .1s ease;
-    display:none;
-  }
+.float-txt{
+  position:fixed;pointer-events:none;z-index:6;font-weight:800;
+  text-shadow:0 2px 10px rgba(0,0,0,.6);
+  animation:floatUp .65s cubic-bezier(.2,.6,.3,1) forwards;
+}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-55px) scale(1.2)}}
 
-  #streak-bar{
-    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-    width:200px;height:6px;border-radius:3px;background:rgba(255,255,255,.1);
-    z-index:5;overflow:hidden;opacity:0;transition:opacity .4s;
-  }
-  #streak-bar.show{opacity:1}
-  #streak-fill{height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,#38B6FF,#7CE38B);transition:width .3s}
+.miss-txt{animation:missShake .5s ease forwards}
+@keyframes missShake{
+  0%{opacity:1;transform:translateX(0)}
+  20%{transform:translateX(-8px)}40%{transform:translateX(8px)}
+  60%{transform:translateX(-4px)}80%{transform:translateX(4px)}
+  100%{opacity:0;transform:translateX(0) translateY(-20px)}
+}
+
+#cursor-dot{
+  position:fixed;width:30px;height:30px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.75);
+  background:radial-gradient(circle,rgba(255,255,255,.2),transparent 70%);
+  transform:translate(-50%,-50%);z-index:6;pointer-events:none;
+  transition:left .25s cubic-bezier(.3,0,.2,1),top .25s cubic-bezier(.3,0,.2,1),transform .08s;
+  display:none;
+}
+
+#streak{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  width:180px;height:5px;border-radius:3px;background:rgba(255,255,255,.06);
+  z-index:5;overflow:hidden;opacity:0;transition:opacity .4s;
+}
+#streak.show{opacity:1}
+#streak-fill{height:100%;width:0%;border-radius:3px;
+  background:linear-gradient(90deg,#38B6FF,#7CE38B,#ffd93d);transition:width .25s}
+
+#level-banner{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
+  font-size:28px;font-weight:800;color:#fff;z-index:8;pointer-events:none;
+  text-shadow:0 0 30px rgba(56,182,255,.6);
+  opacity:0;transition:all .4s cubic-bezier(.2,.8,.3,1);
+}
+#level-banner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 </style>
 </head>
 <body>
 
 <div id="hud">
-  <div class="hud-pill"><span class="swatch"></span><span id="target-label">Find: Orange</span></div>
-  <div class="hud-pill" id="score-pill">Score: <span id="score-num">0</span><span id="combo"></span></div>
-  <div class="hud-pill" id="timer-pill">Time: <span id="timer-num">60</span></div>
+  <div class="pill" id="target-pill"><span class="dot"></span><span id="target-label">Find: Orange</span></div>
+  <div class="pill" id="score-pill"><span id="multiplier">x2</span>Score: <span id="score-num">0</span></div>
+  <div class="pill" id="timer-pill">Time: <span id="timer-num">60</span></div>
 </div>
 
 <div id="overlay">
-  <h1>Aroma Fridge</h1>
-  <div class="sub">Open the fridge. Scent bubbles rise from the food inside — click the one matching the target aroma. Build combos for bonus points. Wrong clicks break your streak!</div>
-  <button id="playBtn">Open the Fridge</button>
+  <h1><span>Aroma Fridge</span></h1>
+  <div class="sub">Scent bubbles rise from food in the fridge. Click the one that matches the target aroma. Build combos for huge multipliers!</div>
+  <button class="play-btn" id="playBtn">Open the Fridge</button>
 </div>
 
 <div id="flash"></div>
 <div id="cursor-dot"></div>
-<div id="streak-bar"><div id="streak-fill"></div></div>
+<div id="streak"><div id="streak-fill"></div></div>
+<div id="level-banner"></div>
 
 <script type="importmap">
-{ "imports": { "three": "./vendor/three/three.module.js" } }
+{"imports":{"three":"./vendor/three/three.module.js"}}
 </script>
 <script type="module">
 import * as THREE from 'three';
 
 const DEMO = new URLSearchParams(location.search).get('demo') === '1';
 
-// ========== SCENE ==========
+// ═══════════ SCENE ═══════════
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x080e1a);
-scene.fog = new THREE.FogExp2(0x080e1a, 0.06);
+scene.background = new THREE.Color(0x060c18);
+scene.fog = new THREE.FogExp2(0x060c18, 0.045);
 
-const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 80);
-camera.position.set(0, 2.0, 8);
+const camera = new THREE.PerspectiveCamera(40, innerWidth/innerHeight, 0.1, 80);
+camera.position.set(0, 2.2, 8.5);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+const renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:true});
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.toneMappingExposure = 1.15;
 document.body.appendChild(renderer.domElement);
 
 addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
+  camera.aspect = innerWidth/innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
 
-// ========== LIGHTS ==========
-scene.add(new THREE.AmbientLight(0x334466, 0.4));
-
-const hemi = new THREE.HemisphereLight(0x8ec5ff, 0x1a1030, 0.5);
+// ═══════════ LIGHTING ═══════════
+scene.add(new THREE.AmbientLight(0x223355, 0.35));
+const hemi = new THREE.HemisphereLight(0x88bbff, 0x110820, 0.45);
 scene.add(hemi);
 
-const key = new THREE.DirectionalLight(0xfff0dd, 1.2);
-key.position.set(5, 9, 6);
+const key = new THREE.DirectionalLight(0xfff4e6, 1.3);
+key.position.set(5, 10, 7);
 key.castShadow = true;
-key.shadow.mapSize.set(1024, 1024);
-key.shadow.camera.near = 1; key.shadow.camera.far = 25;
-key.shadow.camera.left = -5; key.shadow.camera.right = 5;
-key.shadow.camera.top = 6; key.shadow.camera.bottom = -2;
+key.shadow.mapSize.set(1024,1024);
+key.shadow.camera.near=1; key.shadow.camera.far=25;
+key.shadow.camera.left=-6; key.shadow.camera.right=6;
+key.shadow.camera.top=7; key.shadow.camera.bottom=-2;
 key.shadow.bias = -0.001;
 scene.add(key);
 
-const rim = new THREE.DirectionalLight(0x6688ff, 0.4);
-rim.position.set(-4, 5, -3);
+const rim = new THREE.DirectionalLight(0x5566cc, 0.35);
+rim.position.set(-5, 4, -4);
 scene.add(rim);
 
-const fridgeLight = new THREE.PointLight(0xfff8e0, 0, 5, 1.8);
-fridgeLight.position.set(0, 2.4, 0.8);
-scene.add(fridgeLight);
+const fridgeGlow = new THREE.PointLight(0xfff8e0, 0, 5.5, 1.6);
+fridgeGlow.position.set(0, 2.5, 1.0);
+scene.add(fridgeGlow);
 
-const glowLight = new THREE.PointLight(0x44aaff, 0, 4, 2);
-glowLight.position.set(0, 1.0, 1.5);
-scene.add(glowLight);
+const accentGlow = new THREE.PointLight(0x38B6FF, 0, 4, 2);
+accentGlow.position.set(0, 0.6, 2);
+scene.add(accentGlow);
 
-// ========== ENVIRONMENT ==========
-const floorGeo = new THREE.PlaneGeometry(30, 30);
-const floorMat = new THREE.MeshStandardMaterial({ color: 0x0e1628, roughness: 0.85, metalness: 0.15 });
-const floor = new THREE.Mesh(floorGeo, floorMat);
-floor.rotation.x = -Math.PI / 2;
+// ═══════════ ENVIRONMENT ═══════════
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(40, 40),
+  new THREE.MeshStandardMaterial({color:0x0a1225, roughness:0.9, metalness:0.1})
+);
+floor.rotation.x = -Math.PI/2;
 floor.receiveShadow = true;
 scene.add(floor);
 
-const wallMat = new THREE.MeshStandardMaterial({ color: 0x111d33, roughness: 0.95 });
-const backWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), wallMat);
-backWall.position.set(0, 5, -4);
-scene.add(backWall);
+// subtle kitchen back wall
+const wall = new THREE.Mesh(
+  new THREE.PlaneGeometry(25, 12),
+  new THREE.MeshStandardMaterial({color:0x0e1a30, roughness:0.95})
+);
+wall.position.set(0, 6, -5);
+scene.add(wall);
 
-// ========== FRIDGE ==========
+// counter surface
+const counter = new THREE.Mesh(
+  new THREE.BoxGeometry(8, 0.12, 3),
+  new THREE.MeshStandardMaterial({color:0x1a2540, roughness:0.4, metalness:0.3})
+);
+counter.position.set(0, -0.06, 2);
+counter.receiveShadow = true;
+scene.add(counter);
+
+// ═══════════ FRIDGE ═══════════
 const fridge = new THREE.Group();
 scene.add(fridge);
 
-function makeBoxNoFront(w, h, d, mat) {
-  const invis = mat.clone(); invis.visible = false;
-  return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), [mat, mat, mat, mat, invis, mat]);
+function noFrontBox(w,h,d,mat){
+  const inv = mat.clone(); inv.visible = false;
+  return new THREE.Mesh(new THREE.BoxGeometry(w,h,d),[mat,mat,mat,mat,inv,mat]);
 }
 
-const bodyMat = new THREE.MeshStandardMaterial({ color: 0xccd5e0, metalness: 0.55, roughness: 0.22 });
-const body = makeBoxNoFront(2.8, 3.8, 2.4, bodyMat);
-body.position.set(0, 1.9, -0.15);
-body.castShadow = true;
-body.receiveShadow = true;
-fridge.add(body);
+// outer shell
+const shellMat = new THREE.MeshStandardMaterial({color:0xc8d2df, metalness:0.6, roughness:0.18});
+const shell = noFrontBox(3.0, 4.2, 2.6, shellMat);
+shell.position.set(0, 2.1, -0.2);
+shell.castShadow = true;
+shell.receiveShadow = true;
+fridge.add(shell);
 
-const intMat = new THREE.MeshStandardMaterial({ color: 0xeaf2fa, emissive: 0x1a2a40, emissiveIntensity: 0.3, roughness: 0.5 });
-const interior = makeBoxNoFront(2.55, 3.5, 2.1, intMat);
-interior.position.set(0, 1.9, -0.08);
+// rounded top trim
+const topTrim = new THREE.Mesh(
+  new THREE.BoxGeometry(3.0, 0.08, 2.6),
+  new THREE.MeshStandardMaterial({color:0xd5dde8, metalness:0.7, roughness:0.15})
+);
+topTrim.position.set(0, 4.24, -0.2);
+fridge.add(topTrim);
+
+// interior
+const intMat = new THREE.MeshStandardMaterial({color:0xe8f0f8, emissive:0x1a2a44, emissiveIntensity:0.35, roughness:0.45});
+const interior = noFrontBox(2.7, 3.9, 2.3, intMat);
+interior.position.set(0, 2.1, -0.12);
 fridge.add(interior);
 
-const shelfMat = new THREE.MeshStandardMaterial({ color: 0xa8b8cc, metalness: 0.3, roughness: 0.35, transparent: true, opacity: 0.88 });
-[0.55, 1.35, 2.15, 2.95].forEach(y => {
-  const shelf = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.05, 1.9), shelfMat);
-  shelf.position.set(0, y, -0.08);
+// back panel light strip
+const lightStrip = new THREE.Mesh(
+  new THREE.PlaneGeometry(0.08, 3.2),
+  new THREE.MeshBasicMaterial({color:0xfff8e0, transparent:true, opacity:0.4})
+);
+lightStrip.position.set(0, 2.1, -1.25);
+fridge.add(lightStrip);
+
+// shelves — glass-like
+const shelfMat = new THREE.MeshPhysicalMaterial({
+  color:0xb0c0d8, metalness:0.15, roughness:0.2,
+  transparent:true, opacity:0.75, transmission:0.3
+});
+const shelfYs = [0.5, 1.35, 2.2, 3.05];
+shelfYs.forEach(y => {
+  const shelf = new THREE.Mesh(new THREE.BoxGeometry(2.55, 0.04, 2.0), shelfMat);
+  shelf.position.set(0, y, -0.1);
   shelf.receiveShadow = true;
   fridge.add(shelf);
 });
 
-// ===== FOOD ITEMS =====
+// ═══════════ FOOD ITEMS ═══════════
 const FOODS = [
-  { name:'Orange',  emoji:'🍊', color:0xff8830, pos:[-0.7, 0.72, 0.35], shape:'sphere' },
-  { name:'Mint',    emoji:'🌿', color:0x3ddb8e, pos:[ 0.7, 0.72, 0.30], shape:'ico' },
-  { name:'Cheese',  emoji:'🧀', color:0xffd644, pos:[-0.65,1.52, 0.35], shape:'box' },
-  { name:'Berry',   emoji:'🫐', color:0xa855f7, pos:[ 0.65,1.52, 0.35], shape:'sphere' },
-  { name:'Garlic',  emoji:'🧄', color:0xeeeadd, pos:[-0.5, 2.32, 0.30], shape:'ico' },
-  { name:'Lemon',   emoji:'🍋', color:0xf5e642, pos:[ 0.5, 2.32, 0.30], shape:'sphere' },
-  { name:'Chili',   emoji:'🌶️', color:0xe83030, pos:[ 0.0, 3.10, 0.30], shape:'capsule' },
+  {name:'Orange',  emoji:'🍊', color:0xff8830, pos:[-0.7,  0.68, 0.35], geo:'sphere'},
+  {name:'Mint',    emoji:'🌿', color:0x2dd4a0, pos:[ 0.7,  0.68, 0.30], geo:'ico'},
+  {name:'Cheese',  emoji:'🧀', color:0xffc93c, pos:[-0.6,  1.53, 0.35], geo:'box'},
+  {name:'Berry',   emoji:'🫐', color:0x9b59f0, pos:[ 0.6,  1.53, 0.32], geo:'cluster'},
+  {name:'Garlic',  emoji:'🧄', color:0xe8e4d4, pos:[-0.55, 2.38, 0.30], geo:'ico'},
+  {name:'Lemon',   emoji:'🍋', color:0xf0e040, pos:[ 0.55, 2.38, 0.30], geo:'sphere'},
+  {name:'Chili',   emoji:'🌶️', color:0xe02020, pos:[-0.3,  3.22, 0.28], geo:'capsule'},
+  {name:'Basil',   emoji:'🌱', color:0x28a745, pos:[ 0.3,  3.22, 0.28], geo:'ico'},
 ];
 
-const foodGeos = {
-  sphere: new THREE.SphereGeometry(0.18, 16, 16),
-  ico: new THREE.IcosahedronGeometry(0.2, 1),
-  box: new THREE.BoxGeometry(0.28, 0.2, 0.28),
-  capsule: new THREE.CapsuleGeometry(0.08, 0.22, 4, 8),
+const geoMap = {
+  sphere: new THREE.SphereGeometry(0.17, 20, 20),
+  ico: new THREE.IcosahedronGeometry(0.19, 1),
+  box: new THREE.BoxGeometry(0.26, 0.18, 0.26),
+  capsule: new THREE.CapsuleGeometry(0.07, 0.2, 4, 8),
+  cluster: (() => { const g = new THREE.SphereGeometry(0.09, 10, 10); return g; })(),
 };
 
 FOODS.forEach(f => {
-  const mat = new THREE.MeshStandardMaterial({ color: f.color, roughness: 0.35, metalness: 0.1 });
-  const mesh = new THREE.Mesh(foodGeos[f.shape], mat);
-  mesh.position.set(...f.pos);
-  mesh.castShadow = true;
-  fridge.add(mesh);
-  f.mesh = mesh;
+  const mat = new THREE.MeshStandardMaterial({color:f.color, roughness:0.3, metalness:0.08, emissive:f.color, emissiveIntensity:0.08});
+  const group = new THREE.Group();
+
+  if (f.geo === 'cluster') {
+    // berry cluster
+    for (let i = 0; i < 5; i++) {
+      const m = new THREE.Mesh(geoMap.cluster, mat);
+      m.position.set((Math.random()-.5)*.15, (Math.random()-.5)*.12, (Math.random()-.5)*.15);
+      group.add(m);
+    }
+  } else {
+    group.add(new THREE.Mesh(geoMap[f.geo], mat));
+  }
+  group.position.set(...f.pos);
+  group.castShadow = true;
+  fridge.add(group);
+  f.mesh = group;
 });
 
-// ===== DOOR =====
+// ═══════════ DOOR ═══════════
 const doorPivot = new THREE.Group();
-doorPivot.position.set(1.4, 1.9, 1.05);
+doorPivot.position.set(1.5, 2.1, 1.1);
 fridge.add(doorPivot);
 
-const doorMat = new THREE.MeshStandardMaterial({ color: 0xdde4ee, metalness: 0.65, roughness: 0.18 });
-const door = new THREE.Mesh(new THREE.BoxGeometry(2.8, 3.8, 0.12), doorMat);
-door.position.set(-1.4, 0, 0);
+const doorMat = new THREE.MeshStandardMaterial({color:0xd8e0ea, metalness:0.65, roughness:0.16});
+const door = new THREE.Mesh(new THREE.BoxGeometry(3.0, 4.2, 0.1), doorMat);
+door.position.set(-1.5, 0, 0);
 door.castShadow = true;
 doorPivot.add(door);
 
-const handleMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, metalness: 0.85, roughness: 0.25 });
-const handle = new THREE.Mesh(new THREE.CapsuleGeometry(0.04, 1.2, 4, 8), handleMat);
-handle.rotation.z = Math.PI / 2;
-handle.position.set(-0.2, 0, 0.12);
+// handle
+const handleMat = new THREE.MeshStandardMaterial({color:0x222222, metalness:0.9, roughness:0.2});
+const handle = new THREE.Mesh(new THREE.CapsuleGeometry(0.035, 1.4, 4, 8), handleMat);
+handle.rotation.z = Math.PI/2;
+handle.position.set(-0.18, 0, 0.1);
 doorPivot.add(handle);
 
-// door shelf strip
-const doorStrip = new THREE.Mesh(
-  new THREE.BoxGeometry(2.4, 0.04, 0.25),
-  new THREE.MeshStandardMaterial({ color: 0xb8c5d5, roughness: 0.4 })
+// door shelf
+const ds = new THREE.Mesh(
+  new THREE.BoxGeometry(2.6, 0.04, 0.22),
+  new THREE.MeshStandardMaterial({color:0xb0bdd0, roughness:0.35})
 );
-doorStrip.position.set(-1.4, -0.6, -0.06);
-doorPivot.add(doorStrip);
+ds.position.set(-1.5, -0.7, -0.06);
+doorPivot.add(ds);
 
 let doorTarget = 0;
 
-// ========== BUBBLES ==========
+// ═══════════ BUBBLE SYSTEM ═══════════
 const bubbles = [];
-const bubbleGeo = new THREE.SphereGeometry(1, 24, 24);
 const particles = [];
+const trails = [];
+const bubbleGeo = new THREE.SphereGeometry(1, 28, 28);
 
 function spawnBubble(food) {
-  const size = 0.12 + Math.random() * 0.1;
+  const size = 0.11 + Math.random()*0.09;
+  const c = new THREE.Color(food.color);
   const mat = new THREE.MeshPhysicalMaterial({
-    color: food.color, transparent: true, opacity: 0.8,
-    emissive: food.color, emissiveIntensity: 0.55,
-    roughness: 0.15, metalness: 0.05,
-    clearcoat: 0.6, clearcoatRoughness: 0.1,
-    transmission: 0.15,
+    color: food.color, transparent:true, opacity:0.82,
+    emissive: food.color, emissiveIntensity:0.5,
+    roughness:0.1, metalness:0.02,
+    clearcoat:0.8, clearcoatRoughness:0.05,
   });
   const mesh = new THREE.Mesh(bubbleGeo, mat);
   mesh.scale.setScalar(size);
-  mesh.position.copy(food.mesh.position);
-  mesh.position.x += (Math.random() - 0.5) * 0.4;
-  mesh.position.z += 0.15;
+  const fp = food.mesh.position;
+  mesh.position.set(fp.x + (Math.random()-.5)*.4, fp.y + 0.1, fp.z + 0.2);
   mesh.userData = {
-    food, born: performance.now(),
-    speed: 0.18 + Math.random() * 0.2,
-    drift: (Math.random() - 0.5) * 0.5,
-    wobble: Math.random() * Math.PI * 2,
-    wobbleSpeed: 1.5 + Math.random() * 2,
-    baseSize: size,
+    food, born: performance.now(), baseSize: size,
+    speed: 0.15 + Math.random()*0.18,
+    drift: (Math.random()-.5)*0.45,
+    wobble: Math.random()*Math.PI*2,
+    wobbleSpd: 1.2 + Math.random()*2,
+    sinAmp: 0.08 + Math.random()*0.06,
   };
   scene.add(mesh);
   bubbles.push(mesh);
 }
 
-function spawnParticles(pos, color, count) {
+function burstParticles(pos, color, count) {
   for (let i = 0; i < count; i++) {
-    const geo = new THREE.SphereGeometry(0.03 + Math.random() * 0.03, 6, 6);
-    const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1 });
+    const s = 0.02 + Math.random()*0.03;
+    const geo = new THREE.SphereGeometry(s, 6, 6);
+    const mat = new THREE.MeshBasicMaterial({color, transparent:true, opacity:1});
     const p = new THREE.Mesh(geo, mat);
     p.position.copy(pos);
+    const angle = Math.random()*Math.PI*2;
+    const up = 1.5 + Math.random()*3;
+    const spread = 1.5 + Math.random()*2;
     p.userData = {
-      vel: new THREE.Vector3((Math.random()-.5)*3, Math.random()*3+1, (Math.random()-.5)*3),
-      born: performance.now(), life: 0.5 + Math.random() * 0.4,
+      vel: new THREE.Vector3(Math.cos(angle)*spread, up, Math.sin(angle)*spread),
+      born: performance.now(), life: 0.35 + Math.random()*0.35,
     };
     scene.add(p);
     particles.push(p);
   }
 }
 
-// ========== HUD ==========
-const hud = document.getElementById('hud');
-const targetLabel = document.getElementById('target-label');
-const targetSwatch = document.querySelector('.swatch');
-const scoreNum = document.getElementById('score-num');
-const timerNum = document.getElementById('timer-num');
-const comboEl = document.getElementById('combo');
-const flashEl = document.getElementById('flash');
-const overlay = document.getElementById('overlay');
-const playBtn = document.getElementById('playBtn');
-const cursorDot = document.getElementById('cursor-dot');
-const streakBar = document.getElementById('streak-bar');
-const streakFill = document.getElementById('streak-fill');
+// ═══════════ HUD ═══════════
+const $ = id => document.getElementById(id);
+const hud = $('hud');
+const targetLabel = $('target-label');
+const targetDot = document.querySelector('.dot');
+const scoreNum = $('score-num');
+const timerNum = $('timer-num');
+const multiplierEl = $('multiplier');
+const flashEl = $('flash');
+const overlay = $('overlay');
+const playBtn = $('playBtn');
+const cursorDot = $('cursor-dot');
+const streakBar = $('streak');
+const streakFill = $('streak-fill');
+const levelBanner = $('level-banner');
 
-let score = 0, timeLeft = 60, combo = 0, bestCombo = 0;
+let score=0, timeLeft=60, combo=0, bestCombo=0, totalPops=0, correctPops=0;
 let currentTarget = FOODS[0];
-let playing = false, lastSpawnTime = 0, lastTargetTime = 0;
-let difficulty = 1, spawnInterval = 500;
+let playing=false, lastSpawn=0, spawnMs=480, lastTargetPick=0;
+let level=1, levelThreshold=80;
 
-function hexStr(c) { return '#' + c.toString(16).padStart(6, '0'); }
+function hex(c){return '#'+c.toString(16).padStart(6,'0')}
 
-function pickTarget() {
+function pickTarget(){
   let next;
-  do { next = FOODS[Math.floor(Math.random() * FOODS.length)]; } while (next === currentTarget && FOODS.length > 1);
+  do{next=FOODS[Math.floor(Math.random()*FOODS.length)]}while(next===currentTarget && FOODS.length>1);
   currentTarget = next;
   targetLabel.textContent = `Find: ${next.emoji} ${next.name}`;
-  targetSwatch.style.setProperty('--c', hexStr(next.color));
-  lastTargetTime = performance.now();
+  targetDot.style.setProperty('--c', hex(next.color));
+  lastTargetPick = performance.now();
+  $('target-pill').classList.remove('pop');
+  void $('target-pill').offsetWidth;
+  $('target-pill').classList.add('pop');
 }
 
-function flash(color) {
-  flashEl.style.background = color;
-  flashEl.style.opacity = '0.3';
-  setTimeout(() => flashEl.style.opacity = '0', 160);
+function flash(col){
+  flashEl.style.background = col;
+  flashEl.style.opacity = '0.25';
+  setTimeout(()=>flashEl.style.opacity='0', 130);
 }
 
-function showPopText(x, y, text, color) {
+function floatText(x, y, text, color, miss){
   const el = document.createElement('div');
-  el.className = 'pop-text';
+  el.className = miss ? 'float-txt miss-txt' : 'float-txt';
   el.textContent = text;
-  el.style.left = x + 'px';
-  el.style.top = y + 'px';
-  el.style.color = color;
+  el.style.cssText = `left:${x}px;top:${y}px;color:${color};font-size:${miss?18:20+Math.min(combo,5)*3}px`;
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 750);
+  setTimeout(()=>el.remove(), 700);
 }
 
-function popBubble(mesh, correct, screenX, screenY) {
+function showLevel(n){
+  levelBanner.textContent = n <= 1 ? '' : `Level ${n}`;
+  levelBanner.classList.add('show');
+  setTimeout(()=>levelBanner.classList.remove('show'), 1200);
+}
+
+function popBubble(mesh, correct, sx, sy){
   const pos = mesh.position.clone();
   const col = mesh.userData.food.color;
   scene.remove(mesh);
   bubbles.splice(bubbles.indexOf(mesh), 1);
+  totalPops++;
 
   if (correct) {
+    correctPops++;
     combo++;
     if (combo > bestCombo) bestCombo = combo;
-    const multiplier = Math.min(combo, 5);
-    const pts = 10 * multiplier;
+    const mult = Math.min(combo, 5);
+    const pts = 10 * mult;
     score += pts;
-    flash('rgba(100,255,180,.4)');
-    spawnParticles(pos, col, 8 + combo * 2);
-    showPopText(screenX, screenY, combo > 1 ? `+${pts} x${combo}` : `+${pts}`, hexStr(col));
+    flash('rgba(100,255,180,.35)');
+    burstParticles(pos, col, 6 + combo*2);
+    floatText(sx, sy, combo>1 ? `+${pts} x${combo}` : `+${pts}`, hex(col));
     pickTarget();
+
+    // level up
+    if (score >= levelThreshold) {
+      level++;
+      levelThreshold = level * level * 60;
+      showLevel(level);
+    }
+
+    multiplierEl.style.display = combo > 1 ? 'inline' : 'none';
+    multiplierEl.textContent = `x${Math.min(combo,5)}`;
   } else {
     combo = 0;
-    score = Math.max(0, score - 5);
-    flash('rgba(255,70,70,.35)');
-    spawnParticles(pos, 0xff4444, 5);
-    showPopText(screenX, screenY, '-5', '#ff6666');
+    score = Math.max(0, score - 3);
+    flash('rgba(255,60,60,.3)');
+    burstParticles(pos, 0xff3333, 4);
+    floatText(sx, sy, '-3', '#ff5555', true);
+    multiplierEl.style.display = 'none';
   }
+
   scoreNum.textContent = score;
-  comboEl.textContent = combo > 1 ? ` x${combo}` : '';
-  streakFill.style.width = Math.min(combo / 5 * 100, 100) + '%';
+  $('score-pill').classList.remove('pop');
+  void $('score-pill').offsetWidth;
+  $('score-pill').classList.add('pop');
+  streakFill.style.width = Math.min(combo/5*100, 100)+'%';
 }
 
-function startGame() {
-  doorTarget = -Math.PI * 0.6;
-  fridgeLight.intensity = 1.6;
-  glowLight.intensity = 0.6;
-  overlay.classList.add('hidden');
+function startGame(){
+  doorTarget = -Math.PI*0.58;
+  fridgeGlow.intensity = 1.8;
+  accentGlow.intensity = 0.5;
+  overlay.classList.add('fade');
   hud.classList.add('show');
   streakBar.classList.add('show');
   playing = true;
-  score = 0; timeLeft = 60; combo = 0; bestCombo = 0; difficulty = 1;
-  scoreNum.textContent = '0';
-  timerNum.textContent = '60';
-  comboEl.textContent = '';
+  score=0; timeLeft=60; combo=0; bestCombo=0; totalPops=0; correctPops=0;
+  level=1; levelThreshold=80;
+  scoreNum.textContent='0'; timerNum.textContent='60';
+  timerNum.style.color=''; $('timer-pill').style.borderColor='';
+  multiplierEl.style.display='none';
   pickTarget();
+  lastSpawn = performance.now();
 }
 
 playBtn.addEventListener('click', startGame);
 
-function endGame() {
+function endGame(){
   playing = false;
   hud.classList.remove('show');
   streakBar.classList.remove('show');
-  overlay.classList.remove('hidden');
-  overlay.querySelector('h1').textContent = 'Time Up!';
-  overlay.querySelector('.sub').innerHTML =
-    `<div class="stats">Score: <strong>${score}</strong></div>` +
-    `<div style="font-size:15px;opacity:.6;margin-top:6px">Best combo: x${bestCombo}</div>`;
-  playBtn.textContent = 'Play Again';
-  playBtn.onclick = () => {
-    bubbles.forEach(b => scene.remove(b)); bubbles.length = 0;
-    particles.forEach(p => scene.remove(p)); particles.length = 0;
-    doorTarget = 0; fridgeLight.intensity = 0; glowLight.intensity = 0;
-    setTimeout(startGame, 600);
-  };
+  overlay.classList.remove('fade');
+
+  const acc = totalPops > 0 ? Math.round(correctPops/totalPops*100) : 0;
+  let rank = score >= 500 ? 'S' : score >= 300 ? 'A' : score >= 150 ? 'B' : score >= 80 ? 'C' : 'D';
+
+  overlay.innerHTML = `
+    <h1><span>Time Up!</span></h1>
+    <div class="final-score">${score}</div>
+    <div class="stat-row">
+      <span>Rank: ${rank}</span>
+      <span>Best combo: x${bestCombo}</span>
+      <span>Accuracy: ${acc}%</span>
+      <span>Level: ${level}</span>
+    </div>
+    <button class="play-btn" onclick="location.reload()">Play Again</button>
+  `;
 }
 
-// ========== INPUT ==========
+// ═══════════ INPUT ═══════════
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-function handlePick(cx, cy) {
-  if (!playing) return;
-  mouse.x = (cx / innerWidth) * 2 - 1;
-  mouse.y = -(cy / innerHeight) * 2 + 1;
+function handlePick(cx, cy){
+  if(!playing) return;
+  mouse.x = (cx/innerWidth)*2-1;
+  mouse.y = -(cy/innerHeight)*2+1;
   raycaster.setFromCamera(mouse, camera);
   const hits = raycaster.intersectObjects(bubbles);
-  if (hits.length) {
-    popBubble(hits[0].object, hits[0].object.userData.food.name === currentTarget.name, cx, cy);
+  if(hits.length){
+    popBubble(hits[0].object, hits[0].object.userData.food.name===currentTarget.name, cx, cy);
   }
 }
 
 renderer.domElement.addEventListener('pointerdown', e => handlePick(e.clientX, e.clientY));
 
-// ========== DEMO ==========
-function worldToScreen(v3) {
+// ═══════════ DEMO ═══════════
+function w2s(v3){
   const v = v3.clone().project(camera);
-  return { x: (v.x * .5 + .5) * innerWidth, y: (-v.y * .5 + .5) * innerHeight };
+  return {x:(v.x*.5+.5)*innerWidth, y:(-v.y*.5+.5)*innerHeight};
 }
 
-async function runDemo() {
-  await new Promise(r => setTimeout(r, 800));
+async function runDemo(){
+  await new Promise(r=>setTimeout(r,700));
   startGame();
-  cursorDot.style.display = 'block';
-  while (playing) {
-    const match = bubbles.find(b => b.userData.food.name === currentTarget.name && b.material.opacity > 0.3);
-    if (match) {
+  cursorDot.style.display='block';
+  let missCounter = 0;
+  while(playing){
+    const match = bubbles.find(b => b.userData.food.name===currentTarget.name && b.material.opacity>0.35);
+    if(match){
+      missCounter = 0;
       const wp = match.getWorldPosition(new THREE.Vector3());
-      const p = worldToScreen(wp);
-      cursorDot.style.left = p.x + 'px';
-      cursorDot.style.top = p.y + 'px';
-      await new Promise(r => setTimeout(r, 250));
+      const p = w2s(wp);
+      cursorDot.style.left=p.x+'px'; cursorDot.style.top=p.y+'px';
+      await new Promise(r=>setTimeout(r,200));
       const wp2 = match.getWorldPosition(new THREE.Vector3());
-      const p2 = worldToScreen(wp2);
-      cursorDot.style.left = p2.x + 'px';
-      cursorDot.style.top = p2.y + 'px';
-      await new Promise(r => setTimeout(r, 80));
-      cursorDot.style.transform = 'translate(-50%,-50%) scale(.7)';
+      const p2 = w2s(wp2);
+      cursorDot.style.left=p2.x+'px'; cursorDot.style.top=p2.y+'px';
+      await new Promise(r=>setTimeout(r,70));
+      cursorDot.style.transform='translate(-50%,-50%) scale(.7)';
       handlePick(p2.x, p2.y);
-      await new Promise(r => setTimeout(r, 100));
-      cursorDot.style.transform = 'translate(-50%,-50%) scale(1)';
+      await new Promise(r=>setTimeout(r,90));
+      cursorDot.style.transform='translate(-50%,-50%) scale(1)';
     } else {
-      const any = bubbles.find(b => b.material.opacity > 0.4);
-      if (any) {
-        const p = worldToScreen(any.getWorldPosition(new THREE.Vector3()));
-        cursorDot.style.left = p.x + 'px';
-        cursorDot.style.top = p.y + 'px';
+      missCounter++;
+      const any = bubbles.find(b=>b.material.opacity>0.45);
+      if(any){
+        const p = w2s(any.getWorldPosition(new THREE.Vector3()));
+        cursorDot.style.left=p.x+'px'; cursorDot.style.top=p.y+'px';
+        if (missCounter > 12) {
+          await new Promise(r=>setTimeout(r,100));
+          cursorDot.style.transform='translate(-50%,-50%) scale(.7)';
+          handlePick(p.x, p.y);
+          await new Promise(r=>setTimeout(r,90));
+          cursorDot.style.transform='translate(-50%,-50%) scale(1)';
+          missCounter = 0;
+        }
       }
     }
-    await new Promise(r => setTimeout(r, 150));
+    await new Promise(r=>setTimeout(r,120));
   }
 }
 
-// ========== RENDER ==========
+// ═══════════ RENDER ═══════════
 const clock = new THREE.Clock();
 let lastTime = 0;
 
-function animate() {
+function animate(){
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
-  const dt = Math.min(t - lastTime, 0.05);
+  const dt = Math.min(t-lastTime, 0.05);
   lastTime = t;
+  const now = performance.now();
 
-  doorPivot.rotation.y += (doorTarget - doorPivot.rotation.y) * 0.055;
+  // door
+  doorPivot.rotation.y += (doorTarget-doorPivot.rotation.y)*0.05;
 
-  FOODS.forEach((f, i) => {
-    f.mesh.rotation.y += dt * 0.5;
-    f.mesh.position.y = f.pos[1] + Math.sin(t * 1.2 + i * 1.7) * 0.015;
+  // food bob
+  FOODS.forEach((f,i)=>{
+    f.mesh.rotation.y += dt*0.4;
+    f.mesh.position.y = f.pos[1] + Math.sin(t*1.1+i*1.8)*0.012;
   });
 
-  if (playing) {
-    difficulty = 1 + (60 - timeLeft) / 60;
-    const now = performance.now();
-    if (now - lastSpawnTime > spawnInterval) {
-      lastSpawnTime = now;
-      spawnInterval = Math.max(250, 500 - difficulty * 40) + Math.random() * 250;
-      spawnBubble(FOODS[Math.floor(Math.random() * FOODS.length)]);
+  // spawn
+  if(playing){
+    const rate = Math.max(200, 480 - level*30);
+    if(now - lastSpawn > rate + Math.random()*200){
+      lastSpawn = now;
+      spawnBubble(FOODS[Math.floor(Math.random()*FOODS.length)]);
     }
-    if (performance.now() - lastTargetTime > 6000) pickTarget();
+    if(now - lastTargetPick > 5500) pickTarget();
   }
 
-  for (let i = bubbles.length - 1; i >= 0; i--) {
+  // bubbles
+  for(let i=bubbles.length-1; i>=0; i--){
     const b = bubbles[i];
-    const age = (performance.now() - b.userData.born) / 1000;
+    const age = (now - b.userData.born)/1000;
     const u = b.userData;
-    b.position.y += u.speed * dt;
-    b.position.x += u.drift * dt + Math.sin(t * u.wobbleSpeed + u.wobble) * 0.003;
-    b.position.z += 0.12 * dt;
-    b.material.opacity = Math.max(0, 0.85 - age / 7);
-    const pulse = 1 + Math.sin(t * 3 + u.wobble) * 0.06;
-    b.scale.setScalar(u.baseSize * (1 + age * 0.04) * pulse);
-    b.rotation.y += dt * 0.8;
-    if (age > 7) { scene.remove(b); bubbles.splice(i, 1); }
+    b.position.y += u.speed*dt;
+    b.position.x += u.drift*dt + Math.sin(t*u.wobbleSpd+u.wobble)*u.sinAmp*dt;
+    b.position.z += 0.1*dt;
+    b.material.opacity = Math.max(0, 0.82-age/6.5);
+    b.material.emissiveIntensity = 0.5 + Math.sin(t*2.5+u.wobble)*0.15;
+    const pulse = 1 + Math.sin(t*3+u.wobble)*0.05;
+    b.scale.setScalar(u.baseSize*(1+age*0.03)*pulse);
+    b.rotation.y += dt*0.6;
+    b.rotation.x += dt*0.3;
+    if(age>6.5){scene.remove(b);bubbles.splice(i,1)}
   }
 
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-    const age = (performance.now() - p.userData.born) / 1000;
-    if (age > p.userData.life) { scene.remove(p); particles.splice(i, 1); continue; }
-    p.userData.vel.y -= 8 * dt;
+  // particles
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    const age=(now-p.userData.born)/1000;
+    if(age>p.userData.life){scene.remove(p);particles.splice(i,1);continue}
+    p.userData.vel.y -= 9*dt;
     p.position.add(p.userData.vel.clone().multiplyScalar(dt));
-    p.material.opacity = 1 - age / p.userData.life;
-    p.scale.setScalar(1 - age / p.userData.life * 0.5);
+    p.material.opacity = 1-age/p.userData.life;
   }
 
-  camera.position.x = Math.sin(t * 0.12) * 0.3;
-  camera.position.y = 2.0 + Math.sin(t * 0.18) * 0.08;
-  camera.lookAt(0, 1.6, 0);
+  // camera
+  const cSway = playing ? 0.35 : 0.15;
+  camera.position.x = Math.sin(t*0.1)*cSway;
+  camera.position.y = 2.2 + Math.sin(t*0.15)*0.06;
+  camera.lookAt(0, 1.7, 0);
+
+  // fridge glow pulse
+  if(playing){
+    fridgeGlow.intensity = 1.8 + Math.sin(t*0.8)*0.15;
+  }
 
   renderer.render(scene, camera);
 }
 animate();
 
-setInterval(() => {
-  if (!playing) return;
+// timer
+setInterval(()=>{
+  if(!playing)return;
   timeLeft--;
   timerNum.textContent = timeLeft;
-  if (timeLeft <= 10) {
-    document.getElementById('timer-pill').style.borderColor = 'rgba(255,80,80,.5)';
-    timerNum.style.color = '#ff6b6b';
-  } else {
-    document.getElementById('timer-pill').style.borderColor = '';
-    timerNum.style.color = '';
+  if(timeLeft<=10){
+    $('timer-pill').style.borderColor='rgba(255,70,70,.5)';
+    timerNum.style.color='#ff6b6b';
+    if(timeLeft<=5) $('timer-pill').classList.add('pop');
   }
-  if (timeLeft <= 0) endGame();
+  if(timeLeft<=0) endGame();
 }, 1000);
 
-if (DEMO) runDemo();
+if(DEMO) runDemo();
 </script>
 </body>
 </html>
