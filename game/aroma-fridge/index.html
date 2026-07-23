@@ -6,127 +6,65 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;background:#060c18;overflow:hidden;font-family:'SF Pro Display','Segoe UI',system-ui,sans-serif;cursor:crosshair;user-select:none}
+html,body{height:100%;background:#0a0f16;overflow:hidden;font-family:'SF Pro Display','Segoe UI',system-ui,sans-serif;cursor:crosshair;user-select:none}
 canvas{display:block}
 
-/* ── HUD ── */
 #hud{
   position:fixed;top:0;left:0;right:0;padding:14px 20px;
   display:flex;justify-content:space-between;align-items:center;
-  color:#fff;pointer-events:none;z-index:5;
-  opacity:0;transition:opacity .5s .2s;
+  color:#fff;pointer-events:none;z-index:5;opacity:0;transition:opacity .5s .2s;
 }
 #hud.show{opacity:1}
-
 .pill{
-  background:rgba(6,12,24,.7);border:1px solid rgba(255,255,255,.1);
+  background:rgba(10,15,24,.65);border:1px solid rgba(255,255,255,.1);
   padding:9px 18px;border-radius:12px;backdrop-filter:blur(12px);
   font-size:14px;font-weight:600;letter-spacing:.4px;
-  display:flex;align-items:center;gap:9px;
-  transition:border-color .3s,transform .15s;
+  display:flex;align-items:center;gap:9px;transition:border-color .3s,transform .15s;
 }
 .pill.pop{animation:pillPop .25s ease}
 @keyframes pillPop{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+.dot{width:16px;height:16px;border-radius:50%;box-shadow:0 0 12px 3px var(--c,#fff);background:var(--c,#fff);transition:all .35s}
+#multiplier{background:linear-gradient(135deg,#ff6b6b,#ffd93d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;font-size:16px;display:none}
 
-.dot{
-  width:16px;height:16px;border-radius:50%;
-  box-shadow:0 0 12px 3px var(--c,#fff);background:var(--c,#fff);
-  transition:all .35s;
-}
-#combo-txt{font-size:12px;opacity:.65;margin-left:2px}
-#multiplier{
-  background:linear-gradient(135deg,#ff6b6b,#ffd93d);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  font-weight:800;font-size:16px;display:none;
-}
-
-/* ── Overlay ── */
 #overlay{
   position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
   flex-direction:column;gap:18px;z-index:10;color:#fff;text-align:center;
-  background:radial-gradient(ellipse at 50% 55%,rgba(20,50,100,.2),rgba(6,12,24,.95) 70%);
+  background:radial-gradient(ellipse at 50% 55%,rgba(20,40,80,.25),rgba(10,15,22,.94) 70%);
   transition:opacity .4s;
 }
 #overlay.fade{opacity:0;pointer-events:none}
-#overlay h1{font-size:48px;font-weight:800;letter-spacing:1.5px;line-height:1}
-#overlay h1 span{
-  background:linear-gradient(135deg,#7CE38B,#38B6FF,#a78bfa);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-}
-#overlay .sub{font-size:16px;opacity:.6;max-width:400px;line-height:1.6}
-#overlay .final-score{font-size:56px;font-weight:800;
-  background:linear-gradient(135deg,#ffd93d,#ff6b6b,#a78bfa);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-}
-#overlay .stat-row{display:flex;gap:28px;font-size:14px;opacity:.55}
-.play-btn{
-  cursor:pointer;border:none;border-radius:14px;
-  padding:16px 44px;font-size:17px;font-weight:700;color:#060c18;
-  background:linear-gradient(135deg,#7CE38B,#38B6FF);
-  box-shadow:0 4px 24px rgba(56,182,255,.35);
-  transition:transform .12s,box-shadow .12s;pointer-events:all;
-}
-.play-btn:hover{transform:scale(1.04);box-shadow:0 6px 30px rgba(56,182,255,.5)}
+#overlay h1{font-size:46px;font-weight:800;letter-spacing:1px;line-height:1}
+#overlay h1 span{background:linear-gradient(135deg,#8fe3ff,#c7f5d9,#ffe6a3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+#overlay .sub{font-size:16px;opacity:.6;max-width:410px;line-height:1.6}
+#overlay .final-score{font-size:56px;font-weight:800;background:linear-gradient(135deg,#ffd93d,#ff6b6b,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+#overlay .stat-row{display:flex;gap:26px;font-size:14px;opacity:.55;flex-wrap:wrap;justify-content:center}
+.play-btn{cursor:pointer;border:none;border-radius:14px;padding:16px 44px;font-size:17px;font-weight:700;color:#0a0f16;background:linear-gradient(135deg,#8fe3ff,#7CE38B);box-shadow:0 4px 24px rgba(120,220,255,.3);transition:transform .12s,box-shadow .12s;pointer-events:all}
+.play-btn:hover{transform:scale(1.04);box-shadow:0 6px 30px rgba(120,220,255,.5)}
 
-/* ── Effects ── */
 #flash{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:4;transition:opacity .12s}
-
-.float-txt{
-  position:fixed;pointer-events:none;z-index:6;font-weight:800;
-  text-shadow:0 2px 10px rgba(0,0,0,.6);
-  animation:floatUp .65s cubic-bezier(.2,.6,.3,1) forwards;
-}
+.float-txt{position:fixed;pointer-events:none;z-index:6;font-weight:800;text-shadow:0 2px 10px rgba(0,0,0,.6);animation:floatUp .65s cubic-bezier(.2,.6,.3,1) forwards}
 @keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-55px) scale(1.2)}}
-
 .miss-txt{animation:missShake .5s ease forwards}
-@keyframes missShake{
-  0%{opacity:1;transform:translateX(0)}
-  20%{transform:translateX(-8px)}40%{transform:translateX(8px)}
-  60%{transform:translateX(-4px)}80%{transform:translateX(4px)}
-  100%{opacity:0;transform:translateX(0) translateY(-20px)}
-}
-
-#cursor-dot{
-  position:fixed;width:30px;height:30px;border-radius:50%;
-  border:2px solid rgba(255,255,255,.75);
-  background:radial-gradient(circle,rgba(255,255,255,.2),transparent 70%);
-  transform:translate(-50%,-50%);z-index:6;pointer-events:none;
-  transition:left .25s cubic-bezier(.3,0,.2,1),top .25s cubic-bezier(.3,0,.2,1),transform .08s;
-  display:none;
-}
-
-#streak{
-  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
-  width:180px;height:5px;border-radius:3px;background:rgba(255,255,255,.06);
-  z-index:5;overflow:hidden;opacity:0;transition:opacity .4s;
-}
+@keyframes missShake{0%{opacity:1;transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}100%{opacity:0;transform:translateY(-20px)}}
+#cursor-dot{position:fixed;width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.75);background:radial-gradient(circle,rgba(255,255,255,.2),transparent 70%);transform:translate(-50%,-50%);z-index:6;pointer-events:none;transition:left .25s cubic-bezier(.3,0,.2,1),top .25s cubic-bezier(.3,0,.2,1),transform .08s;display:none}
+#streak{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);width:180px;height:5px;border-radius:3px;background:rgba(255,255,255,.06);z-index:5;overflow:hidden;opacity:0;transition:opacity .4s}
 #streak.show{opacity:1}
-#streak-fill{height:100%;width:0%;border-radius:3px;
-  background:linear-gradient(90deg,#38B6FF,#7CE38B,#ffd93d);transition:width .25s}
-
-#level-banner{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
-  font-size:28px;font-weight:800;color:#fff;z-index:8;pointer-events:none;
-  text-shadow:0 0 30px rgba(56,182,255,.6);
-  opacity:0;transition:all .4s cubic-bezier(.2,.8,.3,1);
-}
+#streak-fill{height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,#38B6FF,#7CE38B,#ffd93d);transition:width .25s}
+#level-banner{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:28px;font-weight:800;color:#fff;z-index:8;pointer-events:none;text-shadow:0 0 30px rgba(56,182,255,.6);opacity:0;transition:all .4s cubic-bezier(.2,.8,.3,1)}
 #level-banner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 </style>
 </head>
 <body>
-
 <div id="hud">
   <div class="pill" id="target-pill"><span class="dot"></span><span id="target-label">Find: Orange</span></div>
   <div class="pill" id="score-pill"><span id="multiplier">x2</span>Score: <span id="score-num">0</span></div>
   <div class="pill" id="timer-pill">Time: <span id="timer-num">60</span></div>
 </div>
-
 <div id="overlay">
   <h1><span>Aroma Fridge</span></h1>
-  <div class="sub">Scent bubbles rise from food in the fridge. Click the one that matches the target aroma. Build combos for huge multipliers!</div>
+  <div class="sub">Scent bubbles rise from the food inside. Click the one matching the target aroma. Chain correct clicks for combo multipliers!</div>
   <button class="play-btn" id="playBtn">Open the Fridge</button>
 </div>
-
 <div id="flash"></div>
 <div id="cursor-dot"></div>
 <div id="streak"><div id="streak-fill"></div></div>
@@ -140,13 +78,13 @@ import * as THREE from 'three';
 
 const DEMO = new URLSearchParams(location.search).get('demo') === '1';
 
-// ═══════════ SCENE ═══════════
+// ═══════════ RENDERER / SCENE ═══════════
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x060c18);
-scene.fog = new THREE.FogExp2(0x060c18, 0.045);
+scene.background = new THREE.Color(0x0a0f16);
+scene.fog = new THREE.FogExp2(0x0a0f16, 0.035);
 
-const camera = new THREE.PerspectiveCamera(40, innerWidth/innerHeight, 0.1, 80);
-camera.position.set(0, 2.2, 8.5);
+const camera = new THREE.PerspectiveCamera(38, innerWidth/innerHeight, 0.1, 100);
+camera.position.set(2.6, 2.7, 8.2);
 
 const renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:true});
 renderer.setSize(innerWidth, innerHeight);
@@ -154,7 +92,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
+renderer.toneMappingExposure = 1.0;
 document.body.appendChild(renderer.domElement);
 
 addEventListener('resize', () => {
@@ -163,520 +101,505 @@ addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 
-// ═══════════ LIGHTING ═══════════
-scene.add(new THREE.AmbientLight(0x223355, 0.35));
-const hemi = new THREE.HemisphereLight(0x88bbff, 0x110820, 0.45);
-scene.add(hemi);
+// ═══════════ ENVIRONMENT MAP (procedural — gives metal/glass real reflections) ═══════════
+(function buildEnv(){
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envScene = new THREE.Scene();
+  envScene.background = new THREE.Color(0x3d4756);
+  const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(30,30), new THREE.MeshBasicMaterial({color:0xf4f0e8}));
+  ceiling.position.set(0,12,0); ceiling.rotation.x = Math.PI/2; envScene.add(ceiling);
+  const win = new THREE.Mesh(new THREE.PlaneGeometry(10,14), new THREE.MeshBasicMaterial({color:0xbcd6ff}));
+  win.position.set(-14,5,-2); win.rotation.y = Math.PI/2; envScene.add(win);
+  const warm = new THREE.Mesh(new THREE.PlaneGeometry(8,8), new THREE.MeshBasicMaterial({color:0xffe0b0}));
+  warm.position.set(13,4,4); warm.rotation.y = -Math.PI/2.2; envScene.add(warm);
+  const floorP = new THREE.Mesh(new THREE.PlaneGeometry(30,30), new THREE.MeshBasicMaterial({color:0x2a2620}));
+  floorP.position.set(0,-6,0); floorP.rotation.x = -Math.PI/2; envScene.add(floorP);
+  scene.environment = pmrem.fromScene(envScene, 0.04).texture;
+})();
 
-const key = new THREE.DirectionalLight(0xfff4e6, 1.3);
-key.position.set(5, 10, 7);
+// ═══════════ LIGHTS ═══════════
+scene.add(new THREE.AmbientLight(0x2a3548, 0.35));
+scene.add(new THREE.HemisphereLight(0x9fc0ff, 0x1a1410, 0.5));
+
+const key = new THREE.DirectionalLight(0xfff2e0, 1.15);
+key.position.set(6, 11, 8);
 key.castShadow = true;
-key.shadow.mapSize.set(1024,1024);
-key.shadow.camera.near=1; key.shadow.camera.far=25;
-key.shadow.camera.left=-6; key.shadow.camera.right=6;
-key.shadow.camera.top=7; key.shadow.camera.bottom=-2;
-key.shadow.bias = -0.001;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.near = 1; key.shadow.camera.far = 30;
+key.shadow.camera.left=-7; key.shadow.camera.right=7; key.shadow.camera.top=8; key.shadow.camera.bottom=-2;
+key.shadow.bias = -0.0006; key.shadow.normalBias = 0.02;
 scene.add(key);
 
-const rim = new THREE.DirectionalLight(0x5566cc, 0.35);
-rim.position.set(-5, 4, -4);
-scene.add(rim);
+const fill = new THREE.DirectionalLight(0x88a0d0, 0.3);
+fill.position.set(-6, 4, 3);
+scene.add(fill);
 
-const fridgeGlow = new THREE.PointLight(0xfff8e0, 0, 5.5, 1.6);
-fridgeGlow.position.set(0, 2.5, 1.0);
-scene.add(fridgeGlow);
+// interior LED (on when door opens) — bright point lights (r160 candela units) to flood the interior
+const ledTop = new THREE.PointLight(0xfff6e6, 0, 6, 2); ledTop.position.set(0, 3.7, 0.1); scene.add(ledTop);
+const ledMid = new THREE.PointLight(0xfff6e6, 0, 6, 2); ledMid.position.set(0, 2.4, 0.3); scene.add(ledMid);
+const ledLow = new THREE.PointLight(0xfff2dc, 0, 6, 2); ledLow.position.set(0, 1.2, 0.3); scene.add(ledLow);
+const ledFront = new THREE.PointLight(0xffffff, 0, 7, 2); ledFront.position.set(1.2, 2.5, 1.4); scene.add(ledFront);
 
-const accentGlow = new THREE.PointLight(0x38B6FF, 0, 4, 2);
-accentGlow.position.set(0, 0.6, 2);
-scene.add(accentGlow);
-
-// ═══════════ ENVIRONMENT ═══════════
+// ═══════════ ROOM ═══════════
+// wood-ish floor
 const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(40, 40),
-  new THREE.MeshStandardMaterial({color:0x0a1225, roughness:0.9, metalness:0.1})
+  new THREE.PlaneGeometry(50,50),
+  new THREE.MeshStandardMaterial({color:0x26211a, roughness:0.75, metalness:0.05})
 );
-floor.rotation.x = -Math.PI/2;
-floor.receiveShadow = true;
-scene.add(floor);
+floor.rotation.x = -Math.PI/2; floor.position.y = 0; floor.receiveShadow = true; scene.add(floor);
 
-// subtle kitchen back wall
+// back wall
 const wall = new THREE.Mesh(
-  new THREE.PlaneGeometry(25, 12),
-  new THREE.MeshStandardMaterial({color:0x0e1a30, roughness:0.95})
+  new THREE.PlaneGeometry(40,20),
+  new THREE.MeshStandardMaterial({color:0x1c2534, roughness:0.95})
 );
-wall.position.set(0, 6, -5);
-scene.add(wall);
+wall.position.set(0,10,-3.2); scene.add(wall);
 
-// counter surface
-const counter = new THREE.Mesh(
-  new THREE.BoxGeometry(8, 0.12, 3),
-  new THREE.MeshStandardMaterial({color:0x1a2540, roughness:0.4, metalness:0.3})
-);
-counter.position.set(0, -0.06, 2);
-counter.receiveShadow = true;
-scene.add(counter);
+// ═══════════ MATERIALS ═══════════
+const steel = new THREE.MeshStandardMaterial({color:0xb8bcc2, metalness:1.0, roughness:0.34});
+const steelDark = new THREE.MeshStandardMaterial({color:0x8b9096, metalness:1.0, roughness:0.4});
+const linerMat = new THREE.MeshStandardMaterial({color:0xf4f7fa, roughness:0.6, metalness:0.0, emissive:0xeaf1f7, emissiveIntensity:0.0, side:THREE.DoubleSide});
+const gasketMat = new THREE.MeshStandardMaterial({color:0x2b2f36, roughness:0.85});
+const glassShelf = new THREE.MeshPhysicalMaterial({color:0xcfe0ee, metalness:0, roughness:0.08, transmission:0.9, transparent:true, opacity:0.55, thickness:0.3, ior:1.4});
+const binPlastic = new THREE.MeshPhysicalMaterial({color:0xdff0ff, metalness:0, roughness:0.15, transmission:0.75, transparent:true, opacity:0.4, thickness:0.4, ior:1.35});
+const chromeTrim = new THREE.MeshStandardMaterial({color:0xd8dce0, metalness:1.0, roughness:0.2});
 
-// ═══════════ FRIDGE ═══════════
+// helper: rounded box via a box + no rounding (rely on materials/lighting); with thin bevel strips omitted for perf
+function box(w,h,d,mat){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.castShadow=true;m.receiveShadow=true;return m;}
+function boxNoFront(w,h,d,mat){const inv=mat.clone();inv.visible=false;const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),[mat,mat,mat,mat,inv,mat]);m.castShadow=true;m.receiveShadow=true;return m;}
+
+// ═══════════ FRIDGE BODY ═══════════
 const fridge = new THREE.Group();
+fridge.position.set(0,0,0);
 scene.add(fridge);
 
-function noFrontBox(w,h,d,mat){
-  const inv = mat.clone(); inv.visible = false;
-  return new THREE.Mesh(new THREE.BoxGeometry(w,h,d),[mat,mat,mat,mat,inv,mat]);
-}
+const BODY_W = 3.0, BODY_H = 4.6, BODY_D = 2.5;
+const bodyCX = 0, bodyCY = BODY_H/2 + 0.12, bodyCZ = -0.35;
 
-// outer shell
-const shellMat = new THREE.MeshStandardMaterial({color:0xc8d2df, metalness:0.6, roughness:0.18});
-const shell = noFrontBox(3.0, 4.2, 2.6, shellMat);
-shell.position.set(0, 2.1, -0.2);
-shell.castShadow = true;
-shell.receiveShadow = true;
+// outer stainless shell (open front)
+const shell = boxNoFront(BODY_W, BODY_H, BODY_D, steel);
+shell.position.set(bodyCX, bodyCY, bodyCZ);
 fridge.add(shell);
 
-// rounded top trim
-const topTrim = new THREE.Mesh(
-  new THREE.BoxGeometry(3.0, 0.08, 2.6),
-  new THREE.MeshStandardMaterial({color:0xd5dde8, metalness:0.7, roughness:0.15})
-);
-topTrim.position.set(0, 4.24, -0.2);
-fridge.add(topTrim);
-
-// interior
-const intMat = new THREE.MeshStandardMaterial({color:0xe8f0f8, emissive:0x1a2a44, emissiveIntensity:0.35, roughness:0.45});
-const interior = noFrontBox(2.7, 3.9, 2.3, intMat);
-interior.position.set(0, 2.1, -0.12);
-fridge.add(interior);
-
-// back panel light strip
-const lightStrip = new THREE.Mesh(
-  new THREE.PlaneGeometry(0.08, 3.2),
-  new THREE.MeshBasicMaterial({color:0xfff8e0, transparent:true, opacity:0.4})
-);
-lightStrip.position.set(0, 2.1, -1.25);
-fridge.add(lightStrip);
-
-// shelves — glass-like
-const shelfMat = new THREE.MeshPhysicalMaterial({
-  color:0xb0c0d8, metalness:0.15, roughness:0.2,
-  transparent:true, opacity:0.75, transmission:0.3
-});
-const shelfYs = [0.5, 1.35, 2.2, 3.05];
-shelfYs.forEach(y => {
-  const shelf = new THREE.Mesh(new THREE.BoxGeometry(2.55, 0.04, 2.0), shelfMat);
-  shelf.position.set(0, y, -0.1);
-  shelf.receiveShadow = true;
-  fridge.add(shelf);
+// top + side trim edges (chamfer illusion)
+const topCap = box(BODY_W+0.05, 0.1, BODY_D+0.05, steelDark);
+topCap.position.set(bodyCX, bodyCY+BODY_H/2, bodyCZ); fridge.add(topCap);
+// little feet
+[[-1.3,-1.05],[1.3,-1.05],[-1.3,0.55],[1.3,0.55]].forEach(([x,z])=>{
+  const foot = box(0.18,0.24,0.18, steelDark); foot.position.set(x,0.12,bodyCZ+z*0.0+z); fridge.add(foot);
 });
 
-// ═══════════ FOOD ITEMS ═══════════
-const FOODS = [
-  {name:'Orange',  emoji:'🍊', color:0xff8830, pos:[-0.7,  0.68, 0.35], geo:'sphere'},
-  {name:'Mint',    emoji:'🌿', color:0x2dd4a0, pos:[ 0.7,  0.68, 0.30], geo:'ico'},
-  {name:'Cheese',  emoji:'🧀', color:0xffc93c, pos:[-0.6,  1.53, 0.35], geo:'box'},
-  {name:'Berry',   emoji:'🫐', color:0x9b59f0, pos:[ 0.6,  1.53, 0.32], geo:'cluster'},
-  {name:'Garlic',  emoji:'🧄', color:0xe8e4d4, pos:[-0.55, 2.38, 0.30], geo:'ico'},
-  {name:'Lemon',   emoji:'🍋', color:0xf0e040, pos:[ 0.55, 2.38, 0.30], geo:'sphere'},
-  {name:'Chili',   emoji:'🌶️', color:0xe02020, pos:[-0.3,  3.22, 0.28], geo:'capsule'},
-  {name:'Basil',   emoji:'🌱', color:0x28a745, pos:[ 0.3,  3.22, 0.28], geo:'ico'},
-];
+// interior white liner (open front)
+const IN_W=2.66, IN_H=BODY_H-0.28, IN_D=BODY_D-0.28;
+const liner = boxNoFront(IN_W, IN_H, IN_D, linerMat);
+liner.position.set(bodyCX, bodyCY, bodyCZ+0.02);
+fridge.add(liner);
 
-const geoMap = {
-  sphere: new THREE.SphereGeometry(0.17, 20, 20),
-  ico: new THREE.IcosahedronGeometry(0.19, 1),
-  box: new THREE.BoxGeometry(0.26, 0.18, 0.26),
-  capsule: new THREE.CapsuleGeometry(0.07, 0.2, 4, 8),
-  cluster: (() => { const g = new THREE.SphereGeometry(0.09, 10, 10); return g; })(),
-};
+// door gasket frame (dark seal around opening)
+const frontZ = bodyCZ + BODY_D/2;
+function gasketBar(w,h,x,y){const b=box(w,h,0.06,gasketMat);b.position.set(x,y,frontZ-0.02);fridge.add(b);}
+gasketBar(BODY_W-0.1,0.1, bodyCX, bodyCY+BODY_H/2-0.12);
+gasketBar(BODY_W-0.1,0.1, bodyCX, bodyCY-BODY_H/2+0.12);
+gasketBar(0.1,BODY_H-0.24, bodyCX-BODY_W/2+0.12, bodyCY);
+gasketBar(0.1,BODY_H-0.24, bodyCX+BODY_W/2-0.12, bodyCY);
 
-FOODS.forEach(f => {
-  const mat = new THREE.MeshStandardMaterial({color:f.color, roughness:0.3, metalness:0.08, emissive:f.color, emissiveIntensity:0.08});
-  const group = new THREE.Group();
+// back interior LED light panel
+const ledPanel = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 2.6), new THREE.MeshBasicMaterial({color:0xfff4dc, transparent:true, opacity:0.0}));
+ledPanel.position.set(0, 2.6, bodyCZ-IN_D/2+0.03);
+fridge.add(ledPanel);
 
-  if (f.geo === 'cluster') {
-    // berry cluster
-    for (let i = 0; i < 5; i++) {
-      const m = new THREE.Mesh(geoMap.cluster, mat);
-      m.position.set((Math.random()-.5)*.15, (Math.random()-.5)*.12, (Math.random()-.5)*.15);
-      group.add(m);
-    }
-  } else {
-    group.add(new THREE.Mesh(geoMap[f.geo], mat));
+// ═══════════ INTERIOR SHELVES ═══════════
+const shelfZ = bodyCZ + 0.15;
+const shelfYs = [1.55, 2.45, 3.35];   // three glass shelves
+shelfYs.forEach(y=>{
+  const g = new THREE.Group();
+  const glass = box(IN_W-0.14, 0.05, IN_D-0.55, glassShelf);
+  glass.position.set(0, y, shelfZ);
+  g.add(glass);
+  // chrome front rail
+  const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025, IN_W-0.14, 12), chromeTrim);
+  rail.rotation.z = Math.PI/2;
+  rail.position.set(0, y-0.02, shelfZ + (IN_D-0.55)/2);
+  g.add(rail);
+  fridge.add(g);
+});
+
+// crisper drawers (two, near bottom)
+const crisperY = 0.78;
+[-0.62, 0.62].forEach(x=>{
+  const d = box(1.16, 0.5, IN_D-0.5, binPlastic);
+  d.position.set(x, crisperY, shelfZ+0.05);
+  fridge.add(d);
+  // drawer handle lip
+  const lip = new THREE.Mesh(new THREE.BoxGeometry(1.1,0.05,0.08), chromeTrim);
+  lip.position.set(x, crisperY+0.22, shelfZ+0.05+(IN_D-0.5)/2);
+  fridge.add(lip);
+});
+
+// ═══════════ FOOD BUILDERS ═══════════
+const foodMat = (c, rough=0.4, metal=0.05, emiss=0.12)=> new THREE.MeshStandardMaterial({color:c, roughness:rough, metalness:metal, emissive:c, emissiveIntensity:emiss});
+
+function fruitSphere(color, r, squashY=1){
+  const g = new THREE.Group();
+  const m = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 18), foodMat(color, 0.32, 0.02, 0.22));
+  m.scale.y = squashY; m.castShadow = true; g.add(m);
+  return g;
+}
+function stem(g, r){
+  const s = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.02,0.08,6), foodMat(0x5a3d1a,0.7));
+  s.position.y = r*0.9; s.castShadow=true; g.add(s);
+  const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.04,8,6), foodMat(0x3a8a2a,0.6));
+  leaf.scale.set(1.4,0.25,0.7); leaf.position.set(0.04,r*0.92,0); g.add(leaf);
+}
+function grapeCluster(color){
+  const g = new THREE.Group();
+  const positions = [[0,0,0],[0.09,-0.02,0.03],[-0.08,-0.01,-0.02],[0.03,-0.1,0.05],[-0.04,-0.11,-0.04],[0.07,-0.12,-0.03],[0,-0.2,0.02],[-0.03,-0.21,-0.05]];
+  positions.forEach(p=>{const m=new THREE.Mesh(new THREE.SphereGeometry(0.062,12,10), foodMat(color,0.25,0.05,0.25));m.position.set(...p);m.castShadow=true;g.add(m)});
+  return g;
+}
+function cheeseWedge(color){
+  const g = new THREE.Group();
+  // triangular prism-ish wedge
+  const shape = new THREE.Shape();
+  shape.moveTo(0,0); shape.lineTo(0.34,0); shape.lineTo(0,0.22); shape.lineTo(0,0);
+  const geo = new THREE.ExtrudeGeometry(shape, {depth:0.22, bevelEnabled:false});
+  const m = new THREE.Mesh(geo, foodMat(color,0.5,0.0,0.2));
+  m.rotation.y = 0.3; m.position.set(-0.15,-0.08,-0.11); m.castShadow=true; g.add(m);
+  return g;
+}
+function leafy(color){
+  const g = new THREE.Group();
+  const base = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), foodMat(color,0.6,0,0.2));
+  base.scale.set(1,0.8,1); base.castShadow=true; g.add(base);
+  for(let i=0;i<7;i++){
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.11,8,6), foodMat(new THREE.Color(color).offsetHSL(0,0,(Math.random()-.5)*0.12).getHex(),0.6));
+    const a = i/7*Math.PI*2;
+    leaf.scale.set(0.6,1.3,0.4);
+    leaf.position.set(Math.cos(a)*0.13, 0.08+Math.random()*0.06, Math.sin(a)*0.13);
+    leaf.rotation.set((Math.random()-.5)*0.6, a, (Math.random()-.5)*0.4);
+    leaf.castShadow=true; g.add(leaf);
   }
-  group.position.set(...f.pos);
-  group.castShadow = true;
-  fridge.add(group);
-  f.mesh = group;
+  return g;
+}
+// realistic props (non-interactive)
+function carton(color, w,h,d){
+  const g = new THREE.Group();
+  const b = box(w, h*0.7, d, new THREE.MeshStandardMaterial({color, roughness:0.55}));
+  b.position.y = h*0.35; g.add(b);
+  // gable top
+  const g1 = box(w, h*0.32, d*0.5, new THREE.MeshStandardMaterial({color, roughness:0.55}));
+  g1.position.y = h*0.7 + h*0.14; g.add(g1);
+  return g;
+}
+function bottle(bodyColor, capColor, h, r, glass){
+  const g = new THREE.Group();
+  const mat = glass
+    ? new THREE.MeshPhysicalMaterial({color:bodyColor, roughness:0.1, transmission:0.85, transparent:true, opacity:0.55, thickness:0.3, ior:1.4})
+    : new THREE.MeshStandardMaterial({color:bodyColor, roughness:0.35, metalness:0.05});
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(r, r*0.95, h*0.7, 18), mat);
+  body.position.y = h*0.35; body.castShadow=true; g.add(body);
+  const shoulder = new THREE.Mesh(new THREE.CylinderGeometry(r*0.35, r, h*0.18, 18), mat);
+  shoulder.position.y = h*0.7 + h*0.09; g.add(shoulder);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(r*0.32, r*0.35, h*0.12, 14), mat);
+  neck.position.y = h*0.7 + h*0.18 + h*0.06; g.add(neck);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(r*0.36, r*0.36, h*0.1, 14), new THREE.MeshStandardMaterial({color:capColor, roughness:0.4, metalness:0.1}));
+  cap.position.y = h*0.7 + h*0.18 + h*0.12 + h*0.05; g.add(cap);
+  return g;
+}
+function jar(contentColor, h, r){
+  const g = new THREE.Group();
+  const glass = new THREE.MeshPhysicalMaterial({color:0xdfeef5, roughness:0.08, transmission:0.9, transparent:true, opacity:0.5, thickness:0.2, ior:1.45});
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h*0.8, 20), glass);
+  body.position.y = h*0.4; body.castShadow=true; g.add(body);
+  const content = new THREE.Mesh(new THREE.CylinderGeometry(r*0.9, r*0.9, h*0.62, 20), foodMat(contentColor,0.5,0,0.04));
+  content.position.y = h*0.36; g.add(content);
+  const lid = new THREE.Mesh(new THREE.CylinderGeometry(r*1.05, r*1.05, h*0.16, 20), new THREE.MeshStandardMaterial({color:0xc0a840, roughness:0.4, metalness:0.4}));
+  lid.position.y = h*0.85; g.add(lid);
+  return g;
+}
+function can(color, h, r){
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,20), new THREE.MeshStandardMaterial({color, roughness:0.28, metalness:0.75}));
+  body.position.y=h/2; body.castShadow=true; g.add(body);
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(r*0.96,r*0.96,0.03,20), new THREE.MeshStandardMaterial({color:0xcfd4d8, roughness:0.25, metalness:0.9}));
+  top.position.y=h; g.add(top);
+  return g;
+}
+function eggCarton(){
+  const g = new THREE.Group();
+  const tray = box(0.62,0.1,0.42, new THREE.MeshStandardMaterial({color:0xd8d2c4, roughness:0.85}));
+  tray.position.y=0.05; g.add(tray);
+  for(let i=0;i<2;i++)for(let j=0;j<3;j++){
+    const e = new THREE.Mesh(new THREE.SphereGeometry(0.055,12,10), new THREE.MeshStandardMaterial({color:0xf3e9d2, roughness:0.6}));
+    e.scale.y=1.3; e.position.set(-0.15+i*0.3, 0.14, -0.12+j*0.12); e.castShadow=true; g.add(e);
+  }
+  return g;
+}
+function butter(){
+  const g=new THREE.Group();
+  const b=box(0.34,0.12,0.2, new THREE.MeshStandardMaterial({color:0xf4e6a0, roughness:0.5}));
+  b.position.y=0.06; g.add(b); return g;
+}
+function bowl(color){
+  const g=new THREE.Group();
+  const b=new THREE.Mesh(new THREE.SphereGeometry(0.19,20,14,0,Math.PI*2,0,Math.PI*0.55), new THREE.MeshStandardMaterial({color:0xf0f0f0, roughness:0.3, side:THREE.DoubleSide}));
+  b.rotation.x=Math.PI; b.position.y=0.12; b.castShadow=true; g.add(b);
+  for(let i=0;i<9;i++){const m=new THREE.Mesh(new THREE.SphereGeometry(0.045,10,8), foodMat(color,0.3,0,0.06));m.position.set((Math.random()-.5)*0.22,0.09+Math.random()*0.03,(Math.random()-.5)*0.22);g.add(m)}
+  return g;
+}
+
+// ═══════════ AROMA FOODS (interactive — bubbles rise from these) ═══════════
+const FOODS = [
+  {name:'Orange',  emoji:'🍊', color:0xff8a2b, pos:[-0.55, 1.72, shelfZ+0.35], build:()=>{const g=fruitSphere(0xff8a2b,0.17);stem(g,0.17);return g;}},
+  {name:'Lemon',   emoji:'🍋', color:0xf5df3a, pos:[ 0.15, 1.72, shelfZ+0.4], build:()=>fruitSphere(0xf5df3a,0.15,1.35)},
+  {name:'Tomato',  emoji:'🍅', color:0xe83a28, pos:[ 0.62, 1.7, shelfZ+0.3], build:()=>{const g=fruitSphere(0xe83a28,0.16,0.85);stem(g,0.16);return g;}},
+  {name:'Grapes',  emoji:'🍇', color:0x8b4fd6, pos:[-0.45, 2.68, shelfZ+0.35], build:()=>grapeCluster(0x8b4fd6)},
+  {name:'Lime',    emoji:'🍈', color:0x9ed13a, pos:[ 0.5, 2.66, shelfZ+0.4], build:()=>fruitSphere(0x9ed13a,0.14)},
+  {name:'Cheese',  emoji:'🧀', color:0xf2c14e, pos:[ 0.05, 2.64, shelfZ+0.3], build:()=>cheeseWedge(0xf2c14e)},
+  {name:'Apple',   emoji:'🍎', color:0xd6342c, pos:[-0.62, 0.86, shelfZ+0.35], build:()=>{const g=fruitSphere(0xd6342c,0.15,1.05);stem(g,0.15);return g;}},
+  {name:'Lettuce', emoji:'🥬', color:0x4caf50, pos:[ 0.62, 0.86, shelfZ+0.32], build:()=>leafy(0x4caf50)},
+];
+FOODS.forEach(f=>{
+  const g = f.build();
+  g.position.set(...f.pos);
+  fridge.add(g);
+  f.mesh = g;
 });
+
+// ═══════════ REALISTIC PROPS (non-interactive decor) ═══════════
+function place(obj, x,y,z, ry=0){obj.position.set(x,y,z);obj.rotation.y=ry;fridge.add(obj);}
+// top shelf: cartons + bottle
+place(carton(0xf2f4f7, 0.5,0.7,0.42), -0.55, 3.4, shelfZ-0.1);   // milk
+place(carton(0xff8c1a, 0.46,0.62,0.4),  0.5, 3.4, shelfZ-0.1, 0.2); // OJ
+place(bottle(0xe02818,0x2a2a2a,0.7,0.13,false), 0.05, 3.4, shelfZ+0.35); // ketchup
+place(jar(0x8b2f6a,0.34,0.14), -0.05, 3.4, shelfZ-0.35);         // jam
+// middle shelf extras: bottles + jar + butter
+place(bottle(0x7fb3e0,0x3a6ea5,0.72,0.12,true), -0.7, 2.62, shelfZ-0.25); // water
+place(bottle(0x9ec36a,0x556b2f,0.66,0.11,true),  0.72, 2.62, shelfZ-0.2); // olive oil
+place(jar(0xd94a2a,0.3,0.13),  -0.62, 2.6, shelfZ+0.42);         // sauce jar
+place(butter(),  0.34, 2.58, shelfZ-0.32);
+// bottom shelf (above crispers is shelf y=1.55): eggs, cans, bowl
+place(eggCarton(), -0.2, 1.6, shelfZ-0.28);
+place(can(0xd94f2a,0.32,0.1),  0.6, 1.6, shelfZ-0.3);
+place(can(0x2a7a3a,0.32,0.1),  0.78, 1.6, shelfZ-0.1);
+place(bowl(0x6a3fb0), 0.45, 1.6, shelfZ+0.35);                    // berries bowl
+// crisper contents (peeking)
+place(fruitSphere(0xd6342c,0.13,1.0), -0.85, 0.9, shelfZ+0.3);   // extra apple
+place(fruitSphere(0xff8a2b,0.13), -0.35, 0.9, shelfZ+0.35);
+place(leafy(0x3a9a3f), 0.85, 0.92, shelfZ+0.28);
 
 // ═══════════ DOOR ═══════════
 const doorPivot = new THREE.Group();
-doorPivot.position.set(1.5, 2.1, 1.1);
+doorPivot.position.set(BODY_W/2, bodyCY, frontZ+0.02);
 fridge.add(doorPivot);
 
-const doorMat = new THREE.MeshStandardMaterial({color:0xd8e0ea, metalness:0.65, roughness:0.16});
-const door = new THREE.Mesh(new THREE.BoxGeometry(3.0, 4.2, 0.1), doorMat);
-door.position.set(-1.5, 0, 0);
-door.castShadow = true;
-doorPivot.add(door);
-
-// handle
-const handleMat = new THREE.MeshStandardMaterial({color:0x222222, metalness:0.9, roughness:0.2});
-const handle = new THREE.Mesh(new THREE.CapsuleGeometry(0.035, 1.4, 4, 8), handleMat);
-handle.rotation.z = Math.PI/2;
-handle.position.set(-0.18, 0, 0.1);
-doorPivot.add(handle);
-
-// door shelf
-const ds = new THREE.Mesh(
-  new THREE.BoxGeometry(2.6, 0.04, 0.22),
-  new THREE.MeshStandardMaterial({color:0xb0bdd0, roughness:0.35})
-);
-ds.position.set(-1.5, -0.7, -0.06);
-doorPivot.add(ds);
+const DOOR_W = BODY_W, DOOR_H = BODY_H, DOOR_T = 0.22;
+const doorOuter = box(DOOR_W, DOOR_H, DOOR_T, steel);
+doorOuter.position.set(-DOOR_W/2, 0, 0);
+doorPivot.add(doorOuter);
+// inner door liner
+const doorLiner = box(DOOR_W-0.2, DOOR_H-0.2, 0.04, linerMat);
+doorLiner.position.set(-DOOR_W/2, 0, -DOOR_T/2-0.02);
+doorPivot.add(doorLiner);
+// handle (vertical bar)
+const handleBar = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04, DOOR_H*0.55, 14), chromeTrim);
+handleBar.position.set(-DOOR_W+0.28, 0.2, DOOR_T/2+0.12);
+doorPivot.add(handleBar);
+[[-0.9],[0.9]].forEach(([dy])=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.16,10),chromeTrim);m.rotation.x=Math.PI/2;m.position.set(-DOOR_W+0.28, 0.2+dy*(DOOR_H*0.55/2), DOOR_T/2+0.06);doorPivot.add(m)});
+// door bins (3, transparent) on inside, with a couple of props
+const binYs = [1.2, 0.0, -1.2];
+binYs.forEach((by,i)=>{
+  const bin = box(DOOR_W-0.5, 0.42, 0.34, binPlastic);
+  bin.position.set(-DOOR_W/2, by, -DOOR_T/2-0.22);
+  doorPivot.add(bin);
+});
+// bottle in top door bin
+const doorBottle = bottle(0x9ac8e8,0x3a6ea5,0.55,0.1,true);
+doorBottle.position.set(-DOOR_W/2-0.3, 1.32, -DOOR_T/2-0.22);
+doorPivot.add(doorBottle);
+const doorBottle2 = bottle(0xe8c840,0x8a6a20,0.5,0.09,false);
+doorBottle2.position.set(-DOOR_W/2+0.35, 0.12, -DOOR_T/2-0.22);
+doorPivot.add(doorBottle2);
 
 let doorTarget = 0;
 
-// ═══════════ BUBBLE SYSTEM ═══════════
-const bubbles = [];
-const particles = [];
-const trails = [];
-const bubbleGeo = new THREE.SphereGeometry(1, 28, 28);
+// ═══════════ FREEZER DRAWER (bottom, closed) ═══════════
+const freezer = box(BODY_W, 0.9, 0.18, steel);
+freezer.position.set(0, 0.6, frontZ+0.08);
+fridge.add(freezer);
+const freezerHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035, BODY_W*0.7, 12), chromeTrim);
+freezerHandle.rotation.z = Math.PI/2;
+freezerHandle.position.set(0, 0.92, frontZ+0.2);
+fridge.add(freezerHandle);
 
-function spawnBubble(food) {
-  const size = 0.11 + Math.random()*0.09;
-  const c = new THREE.Color(food.color);
-  const mat = new THREE.MeshPhysicalMaterial({
-    color: food.color, transparent:true, opacity:0.82,
-    emissive: food.color, emissiveIntensity:0.5,
-    roughness:0.1, metalness:0.02,
-    clearcoat:0.8, clearcoatRoughness:0.05,
-  });
-  const mesh = new THREE.Mesh(bubbleGeo, mat);
-  mesh.scale.setScalar(size);
-  const fp = food.mesh.position;
-  mesh.position.set(fp.x + (Math.random()-.5)*.4, fp.y + 0.1, fp.z + 0.2);
-  mesh.userData = {
-    food, born: performance.now(), baseSize: size,
-    speed: 0.15 + Math.random()*0.18,
-    drift: (Math.random()-.5)*0.45,
-    wobble: Math.random()*Math.PI*2,
-    wobbleSpd: 1.2 + Math.random()*2,
-    sinAmp: 0.08 + Math.random()*0.06,
-  };
-  scene.add(mesh);
-  bubbles.push(mesh);
+// ═══════════ AROMA BUBBLES ═══════════
+const bubbles = [], particles = [];
+const bubbleGeo = new THREE.SphereGeometry(1, 24, 24);
+function spawnBubble(food){
+  const size = 0.1 + Math.random()*0.08;
+  const mat = new THREE.MeshPhysicalMaterial({color:food.color, transparent:true, opacity:0.82, emissive:food.color, emissiveIntensity:0.5, roughness:0.1, metalness:0.02, clearcoat:0.8, clearcoatRoughness:0.05, transmission:0.2});
+  const m = new THREE.Mesh(bubbleGeo, mat);
+  m.scale.setScalar(size);
+  const p = food.mesh.position;
+  m.position.set(p.x+(Math.random()-.5)*0.35, p.y+0.15, p.z+0.15);
+  m.userData = {food, born:performance.now(), baseSize:size, speed:0.14+Math.random()*0.16, drift:(Math.random()-.5)*0.4, wobble:Math.random()*6.28, wobbleSpd:1.2+Math.random()*1.8, sinAmp:0.07+Math.random()*0.05};
+  scene.add(m); bubbles.push(m);
 }
-
-function burstParticles(pos, color, count) {
-  for (let i = 0; i < count; i++) {
-    const s = 0.02 + Math.random()*0.03;
-    const geo = new THREE.SphereGeometry(s, 6, 6);
-    const mat = new THREE.MeshBasicMaterial({color, transparent:true, opacity:1});
-    const p = new THREE.Mesh(geo, mat);
+function burst(pos,color,count){
+  for(let i=0;i<count;i++){
+    const s=0.02+Math.random()*0.03;
+    const p=new THREE.Mesh(new THREE.SphereGeometry(s,6,6), new THREE.MeshBasicMaterial({color, transparent:true, opacity:1}));
     p.position.copy(pos);
-    const angle = Math.random()*Math.PI*2;
-    const up = 1.5 + Math.random()*3;
-    const spread = 1.5 + Math.random()*2;
-    p.userData = {
-      vel: new THREE.Vector3(Math.cos(angle)*spread, up, Math.sin(angle)*spread),
-      born: performance.now(), life: 0.35 + Math.random()*0.35,
-    };
-    scene.add(p);
-    particles.push(p);
+    const a=Math.random()*6.28, up=1.5+Math.random()*3, sp=1.4+Math.random()*2;
+    p.userData={vel:new THREE.Vector3(Math.cos(a)*sp,up,Math.sin(a)*sp), born:performance.now(), life:0.35+Math.random()*0.35};
+    scene.add(p); particles.push(p);
   }
 }
 
-// ═══════════ HUD ═══════════
-const $ = id => document.getElementById(id);
-const hud = $('hud');
-const targetLabel = $('target-label');
-const targetDot = document.querySelector('.dot');
-const scoreNum = $('score-num');
-const timerNum = $('timer-num');
-const multiplierEl = $('multiplier');
-const flashEl = $('flash');
-const overlay = $('overlay');
-const playBtn = $('playBtn');
-const cursorDot = $('cursor-dot');
-const streakBar = $('streak');
-const streakFill = $('streak-fill');
-const levelBanner = $('level-banner');
+// ═══════════ HUD / GAME ═══════════
+const $=id=>document.getElementById(id);
+const hud=$('hud'), targetLabel=$('target-label'), targetDot=document.querySelector('.dot');
+const scoreNum=$('score-num'), timerNum=$('timer-num'), multiplierEl=$('multiplier');
+const flashEl=$('flash'), overlay=$('overlay'), playBtn=$('playBtn'), cursorDot=$('cursor-dot');
+const streakBar=$('streak'), streakFill=$('streak-fill'), levelBanner=$('level-banner');
 
-let score=0, timeLeft=60, combo=0, bestCombo=0, totalPops=0, correctPops=0;
-let currentTarget = FOODS[0];
-let playing=false, lastSpawn=0, spawnMs=480, lastTargetPick=0;
-let level=1, levelThreshold=80;
-
-function hex(c){return '#'+c.toString(16).padStart(6,'0')}
+let score=0,timeLeft=60,combo=0,bestCombo=0,totalPops=0,correctPops=0;
+let currentTarget=FOODS[0], playing=false, lastSpawn=0, lastTargetPick=0, level=1, levelThreshold=80;
+const hex=c=>'#'+c.toString(16).padStart(6,'0');
 
 function pickTarget(){
-  let next;
-  do{next=FOODS[Math.floor(Math.random()*FOODS.length)]}while(next===currentTarget && FOODS.length>1);
-  currentTarget = next;
-  targetLabel.textContent = `Find: ${next.emoji} ${next.name}`;
-  targetDot.style.setProperty('--c', hex(next.color));
-  lastTargetPick = performance.now();
-  $('target-pill').classList.remove('pop');
-  void $('target-pill').offsetWidth;
-  $('target-pill').classList.add('pop');
+  let n; do{n=FOODS[Math.floor(Math.random()*FOODS.length)]}while(n===currentTarget&&FOODS.length>1);
+  currentTarget=n;
+  targetLabel.textContent=`Find: ${n.emoji} ${n.name}`;
+  targetDot.style.setProperty('--c',hex(n.color));
+  lastTargetPick=performance.now();
+  $('target-pill').classList.remove('pop');void $('target-pill').offsetWidth;$('target-pill').classList.add('pop');
 }
+function flash(c){flashEl.style.background=c;flashEl.style.opacity='0.25';setTimeout(()=>flashEl.style.opacity='0',130)}
+function floatText(x,y,t,c,miss){const e=document.createElement('div');e.className=miss?'float-txt miss-txt':'float-txt';e.textContent=t;e.style.cssText=`left:${x}px;top:${y}px;color:${c};font-size:${miss?18:20+Math.min(combo,5)*3}px`;document.body.appendChild(e);setTimeout(()=>e.remove(),700)}
+function showLevel(n){levelBanner.textContent=n<=1?'':`Level ${n}`;levelBanner.classList.add('show');setTimeout(()=>levelBanner.classList.remove('show'),1200)}
 
-function flash(col){
-  flashEl.style.background = col;
-  flashEl.style.opacity = '0.25';
-  setTimeout(()=>flashEl.style.opacity='0', 130);
-}
-
-function floatText(x, y, text, color, miss){
-  const el = document.createElement('div');
-  el.className = miss ? 'float-txt miss-txt' : 'float-txt';
-  el.textContent = text;
-  el.style.cssText = `left:${x}px;top:${y}px;color:${color};font-size:${miss?18:20+Math.min(combo,5)*3}px`;
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(), 700);
-}
-
-function showLevel(n){
-  levelBanner.textContent = n <= 1 ? '' : `Level ${n}`;
-  levelBanner.classList.add('show');
-  setTimeout(()=>levelBanner.classList.remove('show'), 1200);
-}
-
-function popBubble(mesh, correct, sx, sy){
-  const pos = mesh.position.clone();
-  const col = mesh.userData.food.color;
-  scene.remove(mesh);
-  bubbles.splice(bubbles.indexOf(mesh), 1);
-  totalPops++;
-
-  if (correct) {
-    correctPops++;
-    combo++;
-    if (combo > bestCombo) bestCombo = combo;
-    const mult = Math.min(combo, 5);
-    const pts = 10 * mult;
-    score += pts;
-    flash('rgba(100,255,180,.35)');
-    burstParticles(pos, col, 6 + combo*2);
-    floatText(sx, sy, combo>1 ? `+${pts} x${combo}` : `+${pts}`, hex(col));
+function popBubble(mesh,correct,sx,sy){
+  const pos=mesh.position.clone(), col=mesh.userData.food.color;
+  scene.remove(mesh); bubbles.splice(bubbles.indexOf(mesh),1); totalPops++;
+  if(correct){
+    correctPops++; combo++; if(combo>bestCombo)bestCombo=combo;
+    const mult=Math.min(combo,5), pts=10*mult; score+=pts;
+    flash('rgba(100,255,180,.35)'); burst(pos,col,6+combo*2);
+    floatText(sx,sy,combo>1?`+${pts} x${combo}`:`+${pts}`,hex(col));
     pickTarget();
-
-    // level up
-    if (score >= levelThreshold) {
-      level++;
-      levelThreshold = level * level * 60;
-      showLevel(level);
-    }
-
-    multiplierEl.style.display = combo > 1 ? 'inline' : 'none';
-    multiplierEl.textContent = `x${Math.min(combo,5)}`;
-  } else {
-    combo = 0;
-    score = Math.max(0, score - 3);
-    flash('rgba(255,60,60,.3)');
-    burstParticles(pos, 0xff3333, 4);
-    floatText(sx, sy, '-3', '#ff5555', true);
-    multiplierEl.style.display = 'none';
+    if(score>=levelThreshold){level++;levelThreshold=level*level*60;showLevel(level)}
+    multiplierEl.style.display=combo>1?'inline':'none'; multiplierEl.textContent=`x${Math.min(combo,5)}`;
+  }else{
+    combo=0; score=Math.max(0,score-3);
+    flash('rgba(255,60,60,.3)'); burst(pos,0xff3333,4);
+    floatText(sx,sy,'-3','#ff5555',true); multiplierEl.style.display='none';
   }
-
-  scoreNum.textContent = score;
-  $('score-pill').classList.remove('pop');
-  void $('score-pill').offsetWidth;
-  $('score-pill').classList.add('pop');
-  streakFill.style.width = Math.min(combo/5*100, 100)+'%';
+  scoreNum.textContent=score;
+  $('score-pill').classList.remove('pop');void $('score-pill').offsetWidth;$('score-pill').classList.add('pop');
+  streakFill.style.width=Math.min(combo/5*100,100)+'%';
+}
+function setLED(on){
+  const v = on ? 190 : 0;
+  ledTop.intensity=v; ledMid.intensity=v; ledLow.intensity=v; ledFront.intensity=on?110:0;
+  ledPanel.material.opacity = on?0.9:0;
+  linerMat.emissiveIntensity = on?0.1:0.0;
 }
 
 function startGame(){
-  doorTarget = -Math.PI*0.58;
-  fridgeGlow.intensity = 1.8;
-  accentGlow.intensity = 0.5;
-  overlay.classList.add('fade');
-  hud.classList.add('show');
-  streakBar.classList.add('show');
-  playing = true;
-  score=0; timeLeft=60; combo=0; bestCombo=0; totalPops=0; correctPops=0;
-  level=1; levelThreshold=80;
-  scoreNum.textContent='0'; timerNum.textContent='60';
-  timerNum.style.color=''; $('timer-pill').style.borderColor='';
-  multiplierEl.style.display='none';
-  pickTarget();
-  lastSpawn = performance.now();
+  doorTarget=-Math.PI*0.62; setLED(true);
+  overlay.classList.add('fade'); hud.classList.add('show'); streakBar.classList.add('show');
+  playing=true; score=0;timeLeft=60;combo=0;bestCombo=0;totalPops=0;correctPops=0;level=1;levelThreshold=80;
+  scoreNum.textContent='0';timerNum.textContent='60';timerNum.style.color='';$('timer-pill').style.borderColor='';
+  multiplierEl.style.display='none'; pickTarget(); lastSpawn=performance.now();
 }
-
 playBtn.addEventListener('click', startGame);
 
 function endGame(){
-  playing = false;
-  hud.classList.remove('show');
-  streakBar.classList.remove('show');
-  overlay.classList.remove('fade');
-
-  const acc = totalPops > 0 ? Math.round(correctPops/totalPops*100) : 0;
-  let rank = score >= 500 ? 'S' : score >= 300 ? 'A' : score >= 150 ? 'B' : score >= 80 ? 'C' : 'D';
-
-  overlay.innerHTML = `
-    <h1><span>Time Up!</span></h1>
-    <div class="final-score">${score}</div>
-    <div class="stat-row">
-      <span>Rank: ${rank}</span>
-      <span>Best combo: x${bestCombo}</span>
-      <span>Accuracy: ${acc}%</span>
-      <span>Level: ${level}</span>
-    </div>
-    <button class="play-btn" onclick="location.reload()">Play Again</button>
-  `;
+  playing=false; hud.classList.remove('show'); streakBar.classList.remove('show'); overlay.classList.remove('fade');
+  const acc=totalPops>0?Math.round(correctPops/totalPops*100):0;
+  const rank=score>=500?'S':score>=300?'A':score>=150?'B':score>=80?'C':'D';
+  overlay.innerHTML=`<h1><span>Time Up!</span></h1><div class="final-score">${score}</div>
+    <div class="stat-row"><span>Rank: ${rank}</span><span>Best combo: x${bestCombo}</span><span>Accuracy: ${acc}%</span><span>Level: ${level}</span></div>
+    <button class="play-btn" onclick="location.reload()">Play Again</button>`;
 }
 
-// ═══════════ INPUT ═══════════
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
-function handlePick(cx, cy){
-  if(!playing) return;
-  mouse.x = (cx/innerWidth)*2-1;
-  mouse.y = -(cy/innerHeight)*2+1;
-  raycaster.setFromCamera(mouse, camera);
-  const hits = raycaster.intersectObjects(bubbles);
-  if(hits.length){
-    popBubble(hits[0].object, hits[0].object.userData.food.name===currentTarget.name, cx, cy);
-  }
+// input
+const raycaster=new THREE.Raycaster(), mouse=new THREE.Vector2();
+function handlePick(cx,cy){
+  if(!playing)return;
+  mouse.x=(cx/innerWidth)*2-1; mouse.y=-(cy/innerHeight)*2+1;
+  raycaster.setFromCamera(mouse,camera);
+  const hits=raycaster.intersectObjects(bubbles);
+  if(hits.length)popBubble(hits[0].object, hits[0].object.userData.food.name===currentTarget.name, cx, cy);
 }
+renderer.domElement.addEventListener('pointerdown',e=>handlePick(e.clientX,e.clientY));
 
-renderer.domElement.addEventListener('pointerdown', e => handlePick(e.clientX, e.clientY));
-
-// ═══════════ DEMO ═══════════
-function w2s(v3){
-  const v = v3.clone().project(camera);
-  return {x:(v.x*.5+.5)*innerWidth, y:(-v.y*.5+.5)*innerHeight};
-}
-
+// demo
+function w2s(v){const p=v.clone().project(camera);return{x:(p.x*.5+.5)*innerWidth,y:(-p.y*.5+.5)*innerHeight}}
 async function runDemo(){
-  await new Promise(r=>setTimeout(r,700));
-  startGame();
-  cursorDot.style.display='block';
-  let missCounter = 0;
+  await new Promise(r=>setTimeout(r,700)); startGame(); cursorDot.style.display='block'; let miss=0;
   while(playing){
-    const match = bubbles.find(b => b.userData.food.name===currentTarget.name && b.material.opacity>0.35);
-    if(match){
-      missCounter = 0;
-      const wp = match.getWorldPosition(new THREE.Vector3());
-      const p = w2s(wp);
-      cursorDot.style.left=p.x+'px'; cursorDot.style.top=p.y+'px';
+    const match=bubbles.find(b=>b.userData.food.name===currentTarget.name&&b.material.opacity>0.35);
+    if(match){miss=0;
+      let p=w2s(match.getWorldPosition(new THREE.Vector3()));
+      cursorDot.style.left=p.x+'px';cursorDot.style.top=p.y+'px';
       await new Promise(r=>setTimeout(r,200));
-      const wp2 = match.getWorldPosition(new THREE.Vector3());
-      const p2 = w2s(wp2);
-      cursorDot.style.left=p2.x+'px'; cursorDot.style.top=p2.y+'px';
+      p=w2s(match.getWorldPosition(new THREE.Vector3()));
+      cursorDot.style.left=p.x+'px';cursorDot.style.top=p.y+'px';
       await new Promise(r=>setTimeout(r,70));
-      cursorDot.style.transform='translate(-50%,-50%) scale(.7)';
-      handlePick(p2.x, p2.y);
-      await new Promise(r=>setTimeout(r,90));
-      cursorDot.style.transform='translate(-50%,-50%) scale(1)';
-    } else {
-      missCounter++;
-      const any = bubbles.find(b=>b.material.opacity>0.45);
-      if(any){
-        const p = w2s(any.getWorldPosition(new THREE.Vector3()));
-        cursorDot.style.left=p.x+'px'; cursorDot.style.top=p.y+'px';
-        if (missCounter > 12) {
-          await new Promise(r=>setTimeout(r,100));
-          cursorDot.style.transform='translate(-50%,-50%) scale(.7)';
-          handlePick(p.x, p.y);
-          await new Promise(r=>setTimeout(r,90));
-          cursorDot.style.transform='translate(-50%,-50%) scale(1)';
-          missCounter = 0;
-        }
-      }
-    }
+      cursorDot.style.transform='translate(-50%,-50%) scale(.7)'; handlePick(p.x,p.y);
+      await new Promise(r=>setTimeout(r,90)); cursorDot.style.transform='translate(-50%,-50%) scale(1)';
+    }else{miss++;const any=bubbles.find(b=>b.material.opacity>0.45);
+      if(any){const p=w2s(any.getWorldPosition(new THREE.Vector3()));cursorDot.style.left=p.x+'px';cursorDot.style.top=p.y+'px';
+        if(miss>12){await new Promise(r=>setTimeout(r,100));cursorDot.style.transform='translate(-50%,-50%) scale(.7)';handlePick(p.x,p.y);await new Promise(r=>setTimeout(r,90));cursorDot.style.transform='translate(-50%,-50%) scale(1)';miss=0}}}
     await new Promise(r=>setTimeout(r,120));
   }
 }
 
 // ═══════════ RENDER ═══════════
-const clock = new THREE.Clock();
-let lastTime = 0;
-
+const clock=new THREE.Clock(); let lastT=0;
 function animate(){
   requestAnimationFrame(animate);
-  const t = clock.getElapsedTime();
-  const dt = Math.min(t-lastTime, 0.05);
-  lastTime = t;
-  const now = performance.now();
+  const t=clock.getElapsedTime(), dt=Math.min(t-lastT,0.05); lastT=t; const now=performance.now();
+  doorPivot.rotation.y += (doorTarget-doorPivot.rotation.y)*0.085;
 
-  // door
-  doorPivot.rotation.y += (doorTarget-doorPivot.rotation.y)*0.05;
+  FOODS.forEach((f,i)=>{f.mesh.rotation.y+=dt*0.25; f.mesh.position.y=f.pos[1]+Math.sin(t*1.0+i*1.8)*0.008});
 
-  // food bob
-  FOODS.forEach((f,i)=>{
-    f.mesh.rotation.y += dt*0.4;
-    f.mesh.position.y = f.pos[1] + Math.sin(t*1.1+i*1.8)*0.012;
-  });
-
-  // spawn
   if(playing){
-    const rate = Math.max(200, 480 - level*30);
-    if(now - lastSpawn > rate + Math.random()*200){
-      lastSpawn = now;
-      spawnBubble(FOODS[Math.floor(Math.random()*FOODS.length)]);
-    }
-    if(now - lastTargetPick > 5500) pickTarget();
+    const rate=Math.max(200,480-level*30);
+    if(now-lastSpawn>rate+Math.random()*200){lastSpawn=now;spawnBubble(FOODS[Math.floor(Math.random()*FOODS.length)])}
+    if(now-lastTargetPick>5500)pickTarget();
   }
-
-  // bubbles
-  for(let i=bubbles.length-1; i>=0; i--){
-    const b = bubbles[i];
-    const age = (now - b.userData.born)/1000;
-    const u = b.userData;
-    b.position.y += u.speed*dt;
-    b.position.x += u.drift*dt + Math.sin(t*u.wobbleSpd+u.wobble)*u.sinAmp*dt;
-    b.position.z += 0.1*dt;
-    b.material.opacity = Math.max(0, 0.82-age/6.5);
-    b.material.emissiveIntensity = 0.5 + Math.sin(t*2.5+u.wobble)*0.15;
-    const pulse = 1 + Math.sin(t*3+u.wobble)*0.05;
-    b.scale.setScalar(u.baseSize*(1+age*0.03)*pulse);
-    b.rotation.y += dt*0.6;
-    b.rotation.x += dt*0.3;
+  for(let i=bubbles.length-1;i>=0;i--){
+    const b=bubbles[i], age=(now-b.userData.born)/1000, u=b.userData;
+    b.position.y+=u.speed*dt; b.position.x+=u.drift*dt+Math.sin(t*u.wobbleSpd+u.wobble)*u.sinAmp*dt; b.position.z+=0.1*dt;
+    b.material.opacity=Math.max(0,0.82-age/6.5);
+    b.material.emissiveIntensity=0.5+Math.sin(t*2.5+u.wobble)*0.15;
+    b.scale.setScalar(u.baseSize*(1+age*0.03)*(1+Math.sin(t*3+u.wobble)*0.05));
+    b.rotation.y+=dt*0.6;
     if(age>6.5){scene.remove(b);bubbles.splice(i,1)}
   }
-
-  // particles
   for(let i=particles.length-1;i>=0;i--){
-    const p=particles[i];
-    const age=(now-p.userData.born)/1000;
+    const p=particles[i], age=(now-p.userData.born)/1000;
     if(age>p.userData.life){scene.remove(p);particles.splice(i,1);continue}
-    p.userData.vel.y -= 9*dt;
-    p.position.add(p.userData.vel.clone().multiplyScalar(dt));
-    p.material.opacity = 1-age/p.userData.life;
+    p.userData.vel.y-=9*dt; p.position.add(p.userData.vel.clone().multiplyScalar(dt)); p.material.opacity=1-age/p.userData.life;
   }
-
-  // camera
-  const cSway = playing ? 0.35 : 0.15;
-  camera.position.x = Math.sin(t*0.1)*cSway;
-  camera.position.y = 2.2 + Math.sin(t*0.15)*0.06;
-  camera.lookAt(0, 1.7, 0);
-
-  // fridge glow pulse
-  if(playing){
-    fridgeGlow.intensity = 1.8 + Math.sin(t*0.8)*0.15;
-  }
-
-  renderer.render(scene, camera);
+  const sway=playing?0.4:0.5;
+  camera.position.x=2.6+Math.sin(t*0.12)*sway;
+  camera.position.y=2.7+Math.sin(t*0.16)*0.08;
+  camera.lookAt(0.1, 2.1, 0);
+  renderer.render(scene,camera);
 }
 animate();
 
-// timer
 setInterval(()=>{
-  if(!playing)return;
-  timeLeft--;
-  timerNum.textContent = timeLeft;
-  if(timeLeft<=10){
-    $('timer-pill').style.borderColor='rgba(255,70,70,.5)';
-    timerNum.style.color='#ff6b6b';
-    if(timeLeft<=5) $('timer-pill').classList.add('pop');
-  }
-  if(timeLeft<=0) endGame();
-}, 1000);
+  if(!playing)return; timeLeft--; timerNum.textContent=timeLeft;
+  if(timeLeft<=10){$('timer-pill').style.borderColor='rgba(255,70,70,.5)';timerNum.style.color='#ff6b6b';if(timeLeft<=5)$('timer-pill').classList.add('pop')}
+  if(timeLeft<=0)endGame();
+},1000);
 
-if(DEMO) runDemo();
+if(DEMO)runDemo();
 </script>
 </body>
 </html>
