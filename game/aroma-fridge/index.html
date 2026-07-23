@@ -5,97 +5,121 @@
 <title>Aroma Fridge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-  html, body { margin: 0; height: 100%; background: #0b1220; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; }
-  canvas { display: block; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#080e1a;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;cursor:crosshair}
+  canvas{display:block}
 
-  #hud {
-    position: fixed; top: 0; left: 0; right: 0; padding: 18px 24px;
-    display: flex; justify-content: space-between; align-items: center;
-    color: #fff; pointer-events: none; z-index: 5;
-    text-shadow: 0 2px 6px rgba(0,0,0,.6);
+  #hud{
+    position:fixed;top:0;left:0;right:0;padding:16px 24px;
+    display:flex;justify-content:space-between;align-items:flex-start;
+    color:#fff;pointer-events:none;z-index:5;
+    text-shadow:0 1px 4px rgba(0,0,0,.7);
+    opacity:0;transition:opacity .6s ease;
   }
-  #target {
-    display: flex; align-items: center; gap: 10px;
-    background: rgba(10,15,30,.55); border: 1px solid rgba(255,255,255,.15);
-    padding: 8px 16px; border-radius: 999px; font-size: 16px; backdrop-filter: blur(6px);
+  #hud.show{opacity:1}
+
+  .hud-pill{
+    background:rgba(8,14,26,.72);border:1px solid rgba(255,255,255,.12);
+    padding:10px 18px;border-radius:14px;backdrop-filter:blur(10px);
+    font-size:15px;font-weight:500;letter-spacing:.3px;
+    display:flex;align-items:center;gap:10px;
   }
-  #target .swatch { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 12px 2px var(--c, #fff); background: var(--c, #fff); }
-  #score, #timer {
-    background: rgba(10,15,30,.55); border: 1px solid rgba(255,255,255,.15);
-    padding: 8px 16px; border-radius: 999px; font-size: 16px; backdrop-filter: blur(6px);
+  .swatch{
+    width:20px;height:20px;border-radius:50%;
+    box-shadow:0 0 14px 3px var(--c,#fff);background:var(--c,#fff);
+    transition:background .3s,box-shadow .3s;
   }
-  #center-msg {
-    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 16px; z-index: 10; color: #fff; text-align: center;
+  #combo{font-size:13px;opacity:.7;margin-left:4px}
+
+  #overlay{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:20px;z-index:10;color:#fff;text-align:center;
+    background:radial-gradient(ellipse at 50% 60%,rgba(30,60,120,.25),rgba(8,14,26,.92) 70%);
   }
-  #center-msg h1 { font-size: 34px; margin: 0; letter-spacing: .5px; }
-  #center-msg p { margin: 0; opacity: .8; max-width: 420px; }
-  #startBtn {
-    pointer-events: all; cursor: pointer; border: none; border-radius: 999px;
-    padding: 14px 34px; font-size: 17px; font-weight: 600; color: #0b1220;
-    background: linear-gradient(135deg, #7CE38B, #38B6FF); box-shadow: 0 8px 24px rgba(56,182,255,.35);
+  #overlay h1{font-size:42px;font-weight:700;letter-spacing:1px;line-height:1.1}
+  #overlay .sub{font-size:17px;opacity:.7;max-width:440px;line-height:1.5}
+  #overlay .stats{font-size:22px;margin-top:4px}
+  #playBtn{
+    pointer-events:all;cursor:pointer;border:none;border-radius:14px;
+    padding:16px 40px;font-size:18px;font-weight:700;color:#080e1a;
+    background:linear-gradient(135deg,#7CE38B,#38B6FF);
+    box-shadow:0 6px 28px rgba(56,182,255,.4);
+    transition:transform .15s,box-shadow .15s;
   }
-  .hidden { display: none !important; }
-  #flash {
-    position: fixed; inset: 0; pointer-events: none; opacity: 0; z-index: 4;
-    transition: opacity .18s ease;
+  #playBtn:hover{transform:scale(1.04);box-shadow:0 8px 34px rgba(56,182,255,.55)}
+  .hidden{display:none!important}
+
+  #flash{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:4;transition:opacity .15s ease}
+
+  .pop-text{
+    position:fixed;pointer-events:none;z-index:6;font-size:22px;font-weight:700;
+    color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.5);
+    animation:popUp .7s ease-out forwards;
   }
-  #cursor-dot {
-    position: fixed; width: 26px; height: 26px; border-radius: 50%;
-    border: 2px solid #fff; background: rgba(255,255,255,.25);
-    transform: translate(-50%, -50%); z-index: 6; pointer-events: none;
-    transition: left .35s ease, top .35s ease, transform .12s ease;
-    display: none;
+  @keyframes popUp{
+    0%{opacity:1;transform:translateY(0) scale(1)}
+    100%{opacity:0;transform:translateY(-60px) scale(1.3)}
   }
-  #banner {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-    color: #fff; font-size: 14px; opacity: .55; z-index: 5; pointer-events: none;
+
+  #cursor-dot{
+    position:fixed;width:32px;height:32px;border-radius:50%;
+    border:2.5px solid rgba(255,255,255,.8);
+    background:radial-gradient(circle,rgba(255,255,255,.3),transparent 70%);
+    transform:translate(-50%,-50%);z-index:6;pointer-events:none;
+    transition:left .3s cubic-bezier(.4,0,.2,1),top .3s cubic-bezier(.4,0,.2,1),transform .1s ease;
+    display:none;
   }
+
+  #streak-bar{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    width:200px;height:6px;border-radius:3px;background:rgba(255,255,255,.1);
+    z-index:5;overflow:hidden;opacity:0;transition:opacity .4s;
+  }
+  #streak-bar.show{opacity:1}
+  #streak-fill{height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,#38B6FF,#7CE38B);transition:width .3s}
 </style>
 </head>
 <body>
-<div id="hud" class="hidden">
-  <div id="target"><span class="swatch"></span><span id="target-label">Find: Orange</span></div>
-  <div id="score">Score: 0</div>
-  <div id="timer">Time: 60</div>
+
+<div id="hud">
+  <div class="hud-pill"><span class="swatch"></span><span id="target-label">Find: Orange</span></div>
+  <div class="hud-pill" id="score-pill">Score: <span id="score-num">0</span><span id="combo"></span></div>
+  <div class="hud-pill" id="timer-pill">Time: <span id="timer-num">60</span></div>
 </div>
 
-<div id="center-msg">
-  <h1>🧊 Aroma Fridge</h1>
-  <p>Open the fridge and catch the scent bubbles that match the aroma shown at the top before they drift away. Click the matching orbs — wrong ones cost you points!</p>
-  <button id="startBtn">Open the Fridge</button>
+<div id="overlay">
+  <h1>Aroma Fridge</h1>
+  <div class="sub">Open the fridge. Scent bubbles rise from the food inside — click the one matching the target aroma. Build combos for bonus points. Wrong clicks break your streak!</div>
+  <button id="playBtn">Open the Fridge</button>
 </div>
 
 <div id="flash"></div>
 <div id="cursor-dot"></div>
-<div id="banner">Aroma Fridge — click the glowing bubble that matches the target scent</div>
+<div id="streak-bar"><div id="streak-fill"></div></div>
 
 <script type="importmap">
-{
-  "imports": {
-    "three": "./vendor/three/three.module.js"
-  }
-}
+{ "imports": { "three": "./vendor/three/three.module.js" } }
 </script>
 <script type="module">
 import * as THREE from 'three';
 
-const params = new URLSearchParams(location.search);
-const DEMO = params.get('demo') === '1';
+const DEMO = new URLSearchParams(location.search).get('demo') === '1';
 
-// ---------- basic scene ----------
+// ========== SCENE ==========
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0b1220);
-scene.fog = new THREE.Fog(0x0b1220, 8, 22);
+scene.background = new THREE.Color(0x080e1a);
+scene.fog = new THREE.FogExp2(0x080e1a, 0.06);
 
-const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 100);
-camera.position.set(0, 1.6, 7);
-camera.lookAt(0, 1.2, 0);
+const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 80);
+camera.position.set(0, 2.0, 8);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
 document.body.appendChild(renderer.domElement);
 
 addEventListener('resize', () => {
@@ -104,236 +128,343 @@ addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 
-// lights
-const hemi = new THREE.HemisphereLight(0x9fd8ff, 0x1a1030, 0.6);
+// ========== LIGHTS ==========
+scene.add(new THREE.AmbientLight(0x334466, 0.4));
+
+const hemi = new THREE.HemisphereLight(0x8ec5ff, 0x1a1030, 0.5);
 scene.add(hemi);
-const key = new THREE.DirectionalLight(0xffffff, 1.1);
-key.position.set(4, 8, 5);
+
+const key = new THREE.DirectionalLight(0xfff0dd, 1.2);
+key.position.set(5, 9, 6);
 key.castShadow = true;
 key.shadow.mapSize.set(1024, 1024);
+key.shadow.camera.near = 1; key.shadow.camera.far = 25;
+key.shadow.camera.left = -5; key.shadow.camera.right = 5;
+key.shadow.camera.top = 6; key.shadow.camera.bottom = -2;
+key.shadow.bias = -0.001;
 scene.add(key);
-const fridgeLight = new THREE.PointLight(0xfff6d8, 0, 6, 2);
-fridgeLight.position.set(0, 2.2, 0.6);
+
+const rim = new THREE.DirectionalLight(0x6688ff, 0.4);
+rim.position.set(-4, 5, -3);
+scene.add(rim);
+
+const fridgeLight = new THREE.PointLight(0xfff8e0, 0, 5, 1.8);
+fridgeLight.position.set(0, 2.4, 0.8);
 scene.add(fridgeLight);
 
-// floor
-const floor = new THREE.Mesh(
-  new THREE.CircleGeometry(12, 48),
-  new THREE.MeshStandardMaterial({ color: 0x141b2e, roughness: 0.9 })
-);
+const glowLight = new THREE.PointLight(0x44aaff, 0, 4, 2);
+glowLight.position.set(0, 1.0, 1.5);
+scene.add(glowLight);
+
+// ========== ENVIRONMENT ==========
+const floorGeo = new THREE.PlaneGeometry(30, 30);
+const floorMat = new THREE.MeshStandardMaterial({ color: 0x0e1628, roughness: 0.85, metalness: 0.15 });
+const floor = new THREE.Mesh(floorGeo, floorMat);
 floor.rotation.x = -Math.PI / 2;
 floor.receiveShadow = true;
 scene.add(floor);
 
-// ---------- fridge ----------
+const wallMat = new THREE.MeshStandardMaterial({ color: 0x111d33, roughness: 0.95 });
+const backWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), wallMat);
+backWall.position.set(0, 5, -4);
+scene.add(backWall);
+
+// ========== FRIDGE ==========
 const fridge = new THREE.Group();
-fridge.position.set(0, 0, 0);
 scene.add(fridge);
 
-// body has no front face (index 4 of a BoxGeometry's material groups) so the
-// door opening reveals the interior instead of showing a solid wall behind it
-const bodyMat = new THREE.MeshStandardMaterial({ color: 0xdfe6ee, metalness: 0.6, roughness: 0.25 });
-const bodyMatInvisible = new THREE.MeshStandardMaterial({ color: 0xdfe6ee, visible: false });
-const body = new THREE.Mesh(new THREE.BoxGeometry(2.6, 3.4, 2.2), [
-  bodyMat, bodyMat, bodyMat, bodyMat, bodyMatInvisible, bodyMat,
-]);
-body.position.set(0, 1.7, -0.1);
+function makeBoxNoFront(w, h, d, mat) {
+  const invis = mat.clone(); invis.visible = false;
+  return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), [mat, mat, mat, mat, invis, mat]);
+}
+
+const bodyMat = new THREE.MeshStandardMaterial({ color: 0xccd5e0, metalness: 0.55, roughness: 0.22 });
+const body = makeBoxNoFront(2.8, 3.8, 2.4, bodyMat);
+body.position.set(0, 1.9, -0.15);
 body.castShadow = true;
 body.receiveShadow = true;
 fridge.add(body);
 
-// interior (visible once door opens) — front face invisible too, otherwise it
-// would recreate a solid wall blocking the view into the fridge
-const interiorMat = new THREE.MeshStandardMaterial({ color: 0xf5fbff, emissive: 0x223344, emissiveIntensity: 0.2, roughness: 0.6 });
-const interiorMatInvisible = new THREE.MeshStandardMaterial({ color: 0xf5fbff, visible: false });
-const interior = new THREE.Mesh(new THREE.BoxGeometry(2.35, 3.1, 1.95), [
-  interiorMat, interiorMat, interiorMat, interiorMat, interiorMatInvisible, interiorMat,
-]);
-interior.position.set(0, 1.7, -0.05);
+const intMat = new THREE.MeshStandardMaterial({ color: 0xeaf2fa, emissive: 0x1a2a40, emissiveIntensity: 0.3, roughness: 0.5 });
+const interior = makeBoxNoFront(2.55, 3.5, 2.1, intMat);
+interior.position.set(0, 1.9, -0.08);
 fridge.add(interior);
 
-// shelves
-const shelfMat = new THREE.MeshStandardMaterial({ color: 0xb9c6d6, metalness: 0.2, roughness: 0.4, transparent: true, opacity: 0.85 });
-[0.7, 1.5, 2.3].forEach((y) => {
-  const shelf = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.06, 1.7), shelfMat);
-  shelf.position.set(0, y, -0.05);
+const shelfMat = new THREE.MeshStandardMaterial({ color: 0xa8b8cc, metalness: 0.3, roughness: 0.35, transparent: true, opacity: 0.88 });
+[0.55, 1.35, 2.15, 2.95].forEach(y => {
+  const shelf = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.05, 1.9), shelfMat);
+  shelf.position.set(0, y, -0.08);
+  shelf.receiveShadow = true;
   fridge.add(shelf);
 });
 
-// food items (aroma sources) — each has a color + label
+// ===== FOOD ITEMS =====
 const FOODS = [
-  { name: 'Orange',  color: 0xff9640, pos: [-0.75, 0.85, 0.3] },
-  { name: 'Mint',    color: 0x53e0a4, pos: [0.75, 0.85, 0.25] },
-  { name: 'Cheese',  color: 0xffe066, pos: [-0.7, 1.65, 0.3] },
-  { name: 'Berry',   color: 0xc26bff, pos: [0.7, 1.65, 0.3] },
-  { name: 'Garlic',  color: 0xf3f3e6, pos: [0, 2.45, 0.25] },
+  { name:'Orange',  emoji:'🍊', color:0xff8830, pos:[-0.7, 0.72, 0.35], shape:'sphere' },
+  { name:'Mint',    emoji:'🌿', color:0x3ddb8e, pos:[ 0.7, 0.72, 0.30], shape:'ico' },
+  { name:'Cheese',  emoji:'🧀', color:0xffd644, pos:[-0.65,1.52, 0.35], shape:'box' },
+  { name:'Berry',   emoji:'🫐', color:0xa855f7, pos:[ 0.65,1.52, 0.35], shape:'sphere' },
+  { name:'Garlic',  emoji:'🧄', color:0xeeeadd, pos:[-0.5, 2.32, 0.30], shape:'ico' },
+  { name:'Lemon',   emoji:'🍋', color:0xf5e642, pos:[ 0.5, 2.32, 0.30], shape:'sphere' },
+  { name:'Chili',   emoji:'🌶️', color:0xe83030, pos:[ 0.0, 3.10, 0.30], shape:'capsule' },
 ];
 
-FOODS.forEach((f) => {
-  const geo = new THREE.IcosahedronGeometry(0.22, 0);
-  const mat = new THREE.MeshStandardMaterial({ color: f.color, roughness: 0.4, metalness: 0.1 });
-  const mesh = new THREE.Mesh(geo, mat);
+const foodGeos = {
+  sphere: new THREE.SphereGeometry(0.18, 16, 16),
+  ico: new THREE.IcosahedronGeometry(0.2, 1),
+  box: new THREE.BoxGeometry(0.28, 0.2, 0.28),
+  capsule: new THREE.CapsuleGeometry(0.08, 0.22, 4, 8),
+};
+
+FOODS.forEach(f => {
+  const mat = new THREE.MeshStandardMaterial({ color: f.color, roughness: 0.35, metalness: 0.1 });
+  const mesh = new THREE.Mesh(foodGeos[f.shape], mat);
   mesh.position.set(...f.pos);
   mesh.castShadow = true;
   fridge.add(mesh);
   f.mesh = mesh;
 });
 
-// door (hinged on the right side)
+// ===== DOOR =====
 const doorPivot = new THREE.Group();
-doorPivot.position.set(1.3, 1.7, 1.05);
+doorPivot.position.set(1.4, 1.9, 1.05);
 fridge.add(doorPivot);
 
-const door = new THREE.Mesh(
-  new THREE.BoxGeometry(2.6, 3.4, 0.14),
-  new THREE.MeshStandardMaterial({ color: 0xeef3f8, metalness: 0.7, roughness: 0.2 })
-);
-door.position.set(-1.3, 0, 0);
+const doorMat = new THREE.MeshStandardMaterial({ color: 0xdde4ee, metalness: 0.65, roughness: 0.18 });
+const door = new THREE.Mesh(new THREE.BoxGeometry(2.8, 3.8, 0.12), doorMat);
+door.position.set(-1.4, 0, 0);
 door.castShadow = true;
 doorPivot.add(door);
 
-const handle = new THREE.Mesh(
-  new THREE.CapsuleGeometry(0.04, 1.0, 4, 8),
-  new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.3 })
-);
+const handleMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, metalness: 0.85, roughness: 0.25 });
+const handle = new THREE.Mesh(new THREE.CapsuleGeometry(0.04, 1.2, 4, 8), handleMat);
 handle.rotation.z = Math.PI / 2;
-handle.position.set(-0.15, 0, 0.14);
+handle.position.set(-0.2, 0, 0.12);
 doorPivot.add(handle);
 
-let doorOpen = false;
+// door shelf strip
+const doorStrip = new THREE.Mesh(
+  new THREE.BoxGeometry(2.4, 0.04, 0.25),
+  new THREE.MeshStandardMaterial({ color: 0xb8c5d5, roughness: 0.4 })
+);
+doorStrip.position.set(-1.4, -0.6, -0.06);
+doorPivot.add(doorStrip);
+
 let doorTarget = 0;
 
-// ---------- aroma bubbles ----------
-const bubbles = []; // active game orbs {mesh, color, name, life}
-const bubbleGeo = new THREE.SphereGeometry(0.16, 20, 20);
+// ========== BUBBLES ==========
+const bubbles = [];
+const bubbleGeo = new THREE.SphereGeometry(1, 24, 24);
+const particles = [];
 
 function spawnBubble(food) {
-  const mat = new THREE.MeshStandardMaterial({
-    color: food.color, transparent: true, opacity: 0.85,
-    emissive: food.color, emissiveIntensity: 0.6, roughness: 0.2,
+  const size = 0.12 + Math.random() * 0.1;
+  const mat = new THREE.MeshPhysicalMaterial({
+    color: food.color, transparent: true, opacity: 0.8,
+    emissive: food.color, emissiveIntensity: 0.55,
+    roughness: 0.15, metalness: 0.05,
+    clearcoat: 0.6, clearcoatRoughness: 0.1,
+    transmission: 0.15,
   });
   const mesh = new THREE.Mesh(bubbleGeo, mat);
+  mesh.scale.setScalar(size);
   mesh.position.copy(food.mesh.position);
-  mesh.position.x += (Math.random() - 0.5) * 0.3;
-  mesh.userData = { food, born: clock.getElapsedTime(), speed: 0.35 + Math.random() * 0.25, drift: (Math.random() - 0.5) * 0.4 };
+  mesh.position.x += (Math.random() - 0.5) * 0.4;
+  mesh.position.z += 0.15;
+  mesh.userData = {
+    food, born: performance.now(),
+    speed: 0.18 + Math.random() * 0.2,
+    drift: (Math.random() - 0.5) * 0.5,
+    wobble: Math.random() * Math.PI * 2,
+    wobbleSpeed: 1.5 + Math.random() * 2,
+    baseSize: size,
+  };
   scene.add(mesh);
   bubbles.push(mesh);
-  return mesh;
 }
 
-// ---------- game state ----------
-const HUD = document.getElementById('hud');
-const targetLabel = document.getElementById('target-label');
-const targetSwatch = document.querySelector('#target .swatch');
-const scoreEl = document.getElementById('score');
-const timerEl = document.getElementById('timer');
-const flashEl = document.getElementById('flash');
-const centerMsg = document.getElementById('center-msg');
-const startBtn = document.getElementById('startBtn');
-const cursorDot = document.getElementById('cursor-dot');
+function spawnParticles(pos, color, count) {
+  for (let i = 0; i < count; i++) {
+    const geo = new THREE.SphereGeometry(0.03 + Math.random() * 0.03, 6, 6);
+    const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1 });
+    const p = new THREE.Mesh(geo, mat);
+    p.position.copy(pos);
+    p.userData = {
+      vel: new THREE.Vector3((Math.random()-.5)*3, Math.random()*3+1, (Math.random()-.5)*3),
+      born: performance.now(), life: 0.5 + Math.random() * 0.4,
+    };
+    scene.add(p);
+    particles.push(p);
+  }
+}
 
-let score = 0;
-let timeLeft = 60;
+// ========== HUD ==========
+const hud = document.getElementById('hud');
+const targetLabel = document.getElementById('target-label');
+const targetSwatch = document.querySelector('.swatch');
+const scoreNum = document.getElementById('score-num');
+const timerNum = document.getElementById('timer-num');
+const comboEl = document.getElementById('combo');
+const flashEl = document.getElementById('flash');
+const overlay = document.getElementById('overlay');
+const playBtn = document.getElementById('playBtn');
+const cursorDot = document.getElementById('cursor-dot');
+const streakBar = document.getElementById('streak-bar');
+const streakFill = document.getElementById('streak-fill');
+
+let score = 0, timeLeft = 60, combo = 0, bestCombo = 0;
 let currentTarget = FOODS[0];
-let playing = false;
-let spawnTimer = 0;
-let targetTimer = 0;
+let playing = false, lastSpawnTime = 0, lastTargetTime = 0;
+let difficulty = 1, spawnInterval = 500;
+
+function hexStr(c) { return '#' + c.toString(16).padStart(6, '0'); }
 
 function pickTarget() {
-  currentTarget = FOODS[Math.floor(Math.random() * FOODS.length)];
-  targetLabel.textContent = `Find: ${currentTarget.name}`;
-  targetSwatch.style.setProperty('--c', '#' + currentTarget.color.toString(16).padStart(6, '0'));
-  targetTimer = 0;
+  let next;
+  do { next = FOODS[Math.floor(Math.random() * FOODS.length)]; } while (next === currentTarget && FOODS.length > 1);
+  currentTarget = next;
+  targetLabel.textContent = `Find: ${next.emoji} ${next.name}`;
+  targetSwatch.style.setProperty('--c', hexStr(next.color));
+  lastTargetTime = performance.now();
 }
 
 function flash(color) {
   flashEl.style.background = color;
-  flashEl.style.opacity = '0.35';
-  setTimeout(() => (flashEl.style.opacity = '0'), 180);
+  flashEl.style.opacity = '0.3';
+  setTimeout(() => flashEl.style.opacity = '0', 160);
 }
 
-function popBubble(mesh, correct) {
+function showPopText(x, y, text, color) {
+  const el = document.createElement('div');
+  el.className = 'pop-text';
+  el.textContent = text;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.color = color;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 750);
+}
+
+function popBubble(mesh, correct, screenX, screenY) {
+  const pos = mesh.position.clone();
+  const col = mesh.userData.food.color;
   scene.remove(mesh);
   bubbles.splice(bubbles.indexOf(mesh), 1);
+
   if (correct) {
-    score += 10;
-    flash('rgba(120,255,170,.5)');
+    combo++;
+    if (combo > bestCombo) bestCombo = combo;
+    const multiplier = Math.min(combo, 5);
+    const pts = 10 * multiplier;
+    score += pts;
+    flash('rgba(100,255,180,.4)');
+    spawnParticles(pos, col, 8 + combo * 2);
+    showPopText(screenX, screenY, combo > 1 ? `+${pts} x${combo}` : `+${pts}`, hexStr(col));
     pickTarget();
   } else {
+    combo = 0;
     score = Math.max(0, score - 5);
-    flash('rgba(255,90,90,.5)');
+    flash('rgba(255,70,70,.35)');
+    spawnParticles(pos, 0xff4444, 5);
+    showPopText(screenX, screenY, '-5', '#ff6666');
   }
-  scoreEl.textContent = `Score: ${score}`;
+  scoreNum.textContent = score;
+  comboEl.textContent = combo > 1 ? ` x${combo}` : '';
+  streakFill.style.width = Math.min(combo / 5 * 100, 100) + '%';
 }
 
-function openFridge() {
-  doorOpen = true;
-  doorTarget = -Math.PI * 0.62;
-  fridgeLight.intensity = 1.4;
-  centerMsg.classList.add('hidden');
-  HUD.classList.remove('hidden');
+function startGame() {
+  doorTarget = -Math.PI * 0.6;
+  fridgeLight.intensity = 1.6;
+  glowLight.intensity = 0.6;
+  overlay.classList.add('hidden');
+  hud.classList.add('show');
+  streakBar.classList.add('show');
   playing = true;
+  score = 0; timeLeft = 60; combo = 0; bestCombo = 0; difficulty = 1;
+  scoreNum.textContent = '0';
+  timerNum.textContent = '60';
+  comboEl.textContent = '';
   pickTarget();
 }
 
-startBtn.addEventListener('click', openFridge);
+playBtn.addEventListener('click', startGame);
 
 function endGame() {
   playing = false;
-  centerMsg.classList.remove('hidden');
-  centerMsg.querySelector('h1').textContent = '🍊 Time up!';
-  centerMsg.querySelector('p').textContent = `Final score: ${score}. Great nose!`;
-  startBtn.textContent = 'Play Again';
-  startBtn.onclick = () => location.reload();
+  hud.classList.remove('show');
+  streakBar.classList.remove('show');
+  overlay.classList.remove('hidden');
+  overlay.querySelector('h1').textContent = 'Time Up!';
+  overlay.querySelector('.sub').innerHTML =
+    `<div class="stats">Score: <strong>${score}</strong></div>` +
+    `<div style="font-size:15px;opacity:.6;margin-top:6px">Best combo: x${bestCombo}</div>`;
+  playBtn.textContent = 'Play Again';
+  playBtn.onclick = () => {
+    bubbles.forEach(b => scene.remove(b)); bubbles.length = 0;
+    particles.forEach(p => scene.remove(p)); particles.length = 0;
+    doorTarget = 0; fridgeLight.intensity = 0; glowLight.intensity = 0;
+    setTimeout(startGame, 600);
+  };
 }
 
-// ---------- input ----------
+// ========== INPUT ==========
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-function handlePick(clientX, clientY) {
+function handlePick(cx, cy) {
   if (!playing) return;
-  mouse.x = (clientX / innerWidth) * 2 - 1;
-  mouse.y = -(clientY / innerHeight) * 2 + 1;
+  mouse.x = (cx / innerWidth) * 2 - 1;
+  mouse.y = -(cy / innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
   const hits = raycaster.intersectObjects(bubbles);
   if (hits.length) {
-    const mesh = hits[0].object;
-    popBubble(mesh, mesh.userData.food.name === currentTarget.name);
+    popBubble(hits[0].object, hits[0].object.userData.food.name === currentTarget.name, cx, cy);
   }
 }
 
-renderer.domElement.addEventListener('pointerdown', (e) => handlePick(e.clientX, e.clientY));
+renderer.domElement.addEventListener('pointerdown', e => handlePick(e.clientX, e.clientY));
 
-// ---------- demo / auto-play (for recording) ----------
-function worldToScreen(vec3) {
-  const v = vec3.clone().project(camera);
-  return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight };
+// ========== DEMO ==========
+function worldToScreen(v3) {
+  const v = v3.clone().project(camera);
+  return { x: (v.x * .5 + .5) * innerWidth, y: (-v.y * .5 + .5) * innerHeight };
 }
 
 async function runDemo() {
-  await new Promise((r) => setTimeout(r, 900));
-  openFridge();
+  await new Promise(r => setTimeout(r, 800));
+  startGame();
   cursorDot.style.display = 'block';
-
   while (playing) {
-    // find a bubble matching current target, moving the cursor to it and clicking
-    const match = bubbles.find((b) => b.userData.food.name === currentTarget.name);
+    const match = bubbles.find(b => b.userData.food.name === currentTarget.name && b.material.opacity > 0.3);
     if (match) {
-      const p = worldToScreen(match.getWorldPosition(new THREE.Vector3()));
+      const wp = match.getWorldPosition(new THREE.Vector3());
+      const p = worldToScreen(wp);
       cursorDot.style.left = p.x + 'px';
       cursorDot.style.top = p.y + 'px';
-      await new Promise((r) => setTimeout(r, 380));
-      cursorDot.style.transform = 'translate(-50%,-50%) scale(0.75)';
-      handlePick(p.x, p.y);
-      await new Promise((r) => setTimeout(r, 120));
+      await new Promise(r => setTimeout(r, 250));
+      const wp2 = match.getWorldPosition(new THREE.Vector3());
+      const p2 = worldToScreen(wp2);
+      cursorDot.style.left = p2.x + 'px';
+      cursorDot.style.top = p2.y + 'px';
+      await new Promise(r => setTimeout(r, 80));
+      cursorDot.style.transform = 'translate(-50%,-50%) scale(.7)';
+      handlePick(p2.x, p2.y);
+      await new Promise(r => setTimeout(r, 100));
       cursorDot.style.transform = 'translate(-50%,-50%) scale(1)';
+    } else {
+      const any = bubbles.find(b => b.material.opacity > 0.4);
+      if (any) {
+        const p = worldToScreen(any.getWorldPosition(new THREE.Vector3()));
+        cursorDot.style.left = p.x + 'px';
+        cursorDot.style.top = p.y + 'px';
+      }
     }
-    await new Promise((r) => setTimeout(r, 220));
+    await new Promise(r => setTimeout(r, 150));
   }
 }
 
-// ---------- render loop ----------
+// ========== RENDER ==========
 const clock = new THREE.Clock();
 let lastTime = 0;
 
@@ -343,54 +474,67 @@ function animate() {
   const dt = Math.min(t - lastTime, 0.05);
   lastTime = t;
 
-  // door swing
-  doorPivot.rotation.y += (doorTarget - doorPivot.rotation.y) * 0.06;
+  doorPivot.rotation.y += (doorTarget - doorPivot.rotation.y) * 0.055;
 
-  // food items gentle bob
   FOODS.forEach((f, i) => {
-    f.mesh.rotation.y += dt * 0.6;
-    f.mesh.position.y = f.pos[1] + Math.sin(t * 1.4 + i) * 0.02;
+    f.mesh.rotation.y += dt * 0.5;
+    f.mesh.position.y = f.pos[1] + Math.sin(t * 1.2 + i * 1.7) * 0.015;
   });
 
-  // spawn bubbles while playing
-  if (playing && doorOpen) {
-    spawnTimer -= dt;
-    if (spawnTimer <= 0) {
-      spawnTimer = 0.55 + Math.random() * 0.4;
+  if (playing) {
+    difficulty = 1 + (60 - timeLeft) / 60;
+    const now = performance.now();
+    if (now - lastSpawnTime > spawnInterval) {
+      lastSpawnTime = now;
+      spawnInterval = Math.max(250, 500 - difficulty * 40) + Math.random() * 250;
       spawnBubble(FOODS[Math.floor(Math.random() * FOODS.length)]);
     }
-    targetTimer += dt;
-    if (targetTimer > 9) pickTarget();
+    if (performance.now() - lastTargetTime > 6000) pickTarget();
   }
 
-  // animate bubbles: float up & out, fade, remove if stale
   for (let i = bubbles.length - 1; i >= 0; i--) {
     const b = bubbles[i];
-    const age = t - b.userData.born;
-    b.position.y += b.userData.speed * dt;
-    b.position.x += b.userData.drift * dt;
-    b.position.z += 0.15 * dt;
-    b.material.opacity = Math.max(0, 0.85 - age / 4);
-    b.scale.setScalar(1 + age * 0.08);
-    if (age > 4.2) {
-      scene.remove(b);
-      bubbles.splice(i, 1);
-    }
+    const age = (performance.now() - b.userData.born) / 1000;
+    const u = b.userData;
+    b.position.y += u.speed * dt;
+    b.position.x += u.drift * dt + Math.sin(t * u.wobbleSpeed + u.wobble) * 0.003;
+    b.position.z += 0.12 * dt;
+    b.material.opacity = Math.max(0, 0.85 - age / 7);
+    const pulse = 1 + Math.sin(t * 3 + u.wobble) * 0.06;
+    b.scale.setScalar(u.baseSize * (1 + age * 0.04) * pulse);
+    b.rotation.y += dt * 0.8;
+    if (age > 7) { scene.remove(b); bubbles.splice(i, 1); }
   }
 
-  // camera gentle sway
-  camera.position.x = Math.sin(t * 0.15) * 0.25;
-  camera.lookAt(0, 1.5, 0);
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    const age = (performance.now() - p.userData.born) / 1000;
+    if (age > p.userData.life) { scene.remove(p); particles.splice(i, 1); continue; }
+    p.userData.vel.y -= 8 * dt;
+    p.position.add(p.userData.vel.clone().multiplyScalar(dt));
+    p.material.opacity = 1 - age / p.userData.life;
+    p.scale.setScalar(1 - age / p.userData.life * 0.5);
+  }
+
+  camera.position.x = Math.sin(t * 0.12) * 0.3;
+  camera.position.y = 2.0 + Math.sin(t * 0.18) * 0.08;
+  camera.lookAt(0, 1.6, 0);
 
   renderer.render(scene, camera);
 }
 animate();
 
-// timer
 setInterval(() => {
   if (!playing) return;
-  timeLeft -= 1;
-  timerEl.textContent = `Time: ${timeLeft}`;
+  timeLeft--;
+  timerNum.textContent = timeLeft;
+  if (timeLeft <= 10) {
+    document.getElementById('timer-pill').style.borderColor = 'rgba(255,80,80,.5)';
+    timerNum.style.color = '#ff6b6b';
+  } else {
+    document.getElementById('timer-pill').style.borderColor = '';
+    timerNum.style.color = '';
+  }
   if (timeLeft <= 0) endGame();
 }, 1000);
 
