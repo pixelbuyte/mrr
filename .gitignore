@@ -11,3 +11,4 @@ npm-debug.log*
 coverage/
 *.tgz
 .npm/
+soundboard/data/*.db
